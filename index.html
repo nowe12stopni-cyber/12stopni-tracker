@@ -1784,38 +1784,67 @@ function extractBooqable(text){
     // ── Lokalizacja: parsowanie per pole ──
     let location='', street='', city='', venue='';
 
-    // Helper: pobierz wartość po etykiecie (szuka "Etykieta\nWartość" lub "Etykieta Wartość")
+    // Helper: pobierz wartość po etykiecie
     function getAfterLabel(src, label){
-      // Szukaj label w tekście (case-insensitive)
-      const re=new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[\\s\\n]*([^\\n]+)','i');
+      const re=new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[\\s\\n]*([^\n]+)','i');
       const m=src.match(re);
       if(!m)return '';
       let val=m[1].trim();
-      // Odetnij wszystko po naszych markerach
-      const stops=['Osoba odpowiedzialna','Z usług','Uwagi','Zamówienie','Rozpoczęcie','Michał','Meble'];
+      const stops=['Osoba odpowiedzialna','Z usług','Zamówienie','Rozpoczęcie','Michał','Meble'];
       for(const s of stops){const si=val.indexOf(s);if(si>0)val=val.slice(0,si).trim();}
       return val.replace(/[\s,]+$/,'').trim();
     }
 
-    // Miasto
-    city=getAfterLabel(text,'Miasto');
-    // Usuń jeśli to wygląda jak adres, nie miasto
-    if(city.match(/^(ul\.|pl\.|al\.|\d{2}-\d{3}|Poland|Polska)/i)) city='';
-
-    // Obiekt
-    venue=getAfterLabel(text,'Obiekt');
-    if(venue.match(/^(Osoba|Kamila|NIP|ul\.)/i)) venue='';
-
-    // Adres dostarczenia (lub Dokładny adres dostarczenia)
+    // Adres dostarczenia (może być jedno-liniowy "Miasto, Ulica, Kod, Obiekt")
     const adresLabel=text.includes('Dokładny adres dostarczenia')?'Dokładny adres dostarczenia':'Adres dostarczenia';
-    street=getAfterLabel(text,adresLabel);
-    // Odetnij kod pocztowy i "Poland" z końca
-    street=street.split(/\n/)[0].trim();
-    if(street.match(/^\d{2}-\d{3}/)||street.match(/^(Poland|Polska)$/i)) street='';
+    const adresIdx=text.indexOf(adresLabel);
+    if(adresIdx>=0){
+      const afterAdres=text.slice(adresIdx+adresLabel.length,adresIdx+adresLabel.length+250).trim();
+      // Odetnij na stop-phrasach
+      let rawAdres=afterAdres;
+      for(const s of ['Osoba odpowiedzialna','Obiekt','Data\n','Zamówienie','Rozpoczęcie']){
+        const si=rawAdres.indexOf(s);if(si>0)rawAdres=rawAdres.slice(0,si);
+      }
+      const adresLines=rawAdres.split(/[\n\r]+/).map(l=>l.trim())
+        .filter(l=>l.length>2&&!l.match(/^(Poland|Polska)$/i));
+      const firstLine=adresLines[0]||'';
+      if(firstLine.includes(',')){
+        // Format: "Miasto, Ulica, Kod, Obiekt" — rozdziel po przecinkach
+        const parts=firstLine.split(',').map(p=>p.trim()).filter(Boolean);
+        city=parts[0]||'';
+        const partsNoPostal=parts.slice(1).filter(p=>!p.match(/^\d{2}-\d{3}$/));
+        // Ostatni element to obiekt jeśli nie wygląda jak ulica i jest ich > 1
+        if(partsNoPostal.length>1&&!partsNoPostal[partsNoPostal.length-1].match(/^(ul\.|pl\.|al\.)/i)){
+          venue=partsNoPostal[partsNoPostal.length-1];
+          street=partsNoPostal.slice(0,-1).join(', ');
+        } else {
+          street=partsNoPostal.join(', ');
+        }
+      } else {
+        // Multi-line format
+        street=firstLine;
+        // Kolejne linie szukaj jako kod/kraj
+        city=''; venue='';
+      }
+    }
 
-    // location = ulica + miasto
-    if(street&&city) location=street+', '+city;
-    else location=street||city||'';
+    // Fallback: "Miasto
+Wartość" (osobna sekcja — PDF #548 format)
+    if(!city){
+      const miastoVal=getAfterLabel(text,'Miasto');
+      if(miastoVal&&!miastoVal.match(/^(ul\.|pl\.|\d{2}-\d{3}|Poland|Polska|Adres|Osoba)/i))
+        city=miastoVal;
+    }
+    // "Obiekt
+Wartość"
+    if(!venue){
+      const obiektVal=getAfterLabel(text,'Obiekt');
+      if(obiektVal&&!obiektVal.match(/^(Osoba|Kamil|NIP|ul\.)/i))
+        venue=obiektVal;
+    }
+
+    location=street&&city?street+', '+city:(street||city||'');
+
     return {no,client,date,mountTime,demountDate,demountTime,location,street,city,venue,netFV,rental:rentalSum,transport,montaz,items};
   }catch(e){return null;}
 }
@@ -1828,7 +1857,7 @@ function showBqPreview(r){
     <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">Nr zamówienia</span><input id="bq-no" value="${esc(r.no)}" placeholder="np. 548" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:13px;color:#1a1a1a;outline:none;flex:1"></div>
     <div class="bq-row" style="align-items:flex-start">
       <span class="bq-lbl" style="padding-top:8px">Klient *</span>
-      <input id="bq-client-name" value="${esc(r.client)}" placeholder="Wpisz nazwę klienta..." style="flex:1;background:var(--surface);border:1.5px solid ${r.client?'var(--green-border)':'var(--red-border)'};border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--ink)'" onblur="this.style.borderColor=this.value?'var(--green-border)':'var(--red-border)'">
+      <input id="bq-client-name" value="${esc(r.client)}" placeholder="Nazwa klienta" style="flex:1;background:var(--surface);border:1.5px solid ${r.client?'var(--green-border)':'var(--border)'};border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--ink)'" onblur="this.style.borderColor=this.value?'var(--green-border)':'var(--red-border)'">
     </div>
     <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">↑ Montaż</span><div style="display:flex;gap:5px;flex:1"><input id="bq-date" type="date" value="${r.date||''}" style="background:var(--surface);border:1.5px solid #bfdbfe;border-radius:var(--r);padding:6px 8px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none;flex:1"><input id="bq-mount-time" type="time" value="${r.mountTime||''}" style="width:88px;background:var(--surface);border:1.5px solid #bfdbfe;border-radius:var(--r);padding:6px 6px;font-size:12px;color:#1a1a1a;outline:none"></div></div>
     <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">↓ Demontaż</span><div style="display:flex;gap:5px;flex:1"><input id="bq-demount-date" type="date" value="${r.demountDate||''}" style="background:var(--surface);border:1.5px solid #fecaca;border-radius:var(--r);padding:6px 8px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none;flex:1"><input id="bq-demount-time" type="time" value="${r.demountTime||''}" style="width:88px;background:var(--surface);border:1.5px solid #fecaca;border-radius:var(--r);padding:6px 6px;font-size:12px;color:#1a1a1a;outline:none"></div></div>
