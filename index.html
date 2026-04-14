@@ -533,6 +533,8 @@ input,select,textarea{font-family:var(--sans)}
           Dodaj zamówienie
         </button>
       </div>
+      <!-- Month tabs -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;overflow-x:auto;padding-bottom:4px" id="ord-month-tabs"></div>
       <div class="grid g4" id="ord-met"></div>
       <div id="ord-alerts"></div>
       <!-- Hidden manual inputs (kept for addRev() function compatibility) -->
@@ -970,34 +972,37 @@ input,select,textarea{font-family:var(--sans)}
     <div class="imp-log" id="bq-log"></div>
     <!-- Podgląd sparsowanych danych -->
     <div class="bq-preview" id="bq-preview">
-      <div style="font-size:11px;font-family:var(--mono);color:var(--ink3);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em">Odczytane dane — sprawdź i zapisz</div>
+      <div style="font-size:10px;font-family:var(--mono);color:var(--ink3);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em">Sprawdź i uzupełnij dane — wszystkie pola są edytowalne</div>
       <div id="bq-fields"></div>
-      <div class="bq-items" id="bq-items-wrap">
-        <div style="font-size:10px;font-family:var(--mono);color:var(--ink3);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.08em">Pozycje zamówienia</div>
-        <div id="bq-items"></div>
-      </div>
-      <!-- Uzupełnienie kosztów realizacji -->
-      <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border)">
-        <div style="font-size:10px;font-family:var(--mono);color:var(--ink3);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em">Uzupełnij koszty realizacji</div>
+
+      <!-- Koszty realizacji — zintegrowane w formularzu -->
+      <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.625rem">🔧 Koszty realizacji</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div>
-            <label style="font-size:11px;color:var(--ink3);font-family:var(--mono);display:block;margin-bottom:4px">Transport (zł)</label>
-            <input id="bq-tr" type="number" placeholder="z PDF: Transport" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;font-size:13px;color:var(--ink);outline:none">
+            <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:3px">Transport (zł netto)</label>
+            <input id="bq-tr" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#dc2626;outline:none">
           </div>
           <div>
-            <label style="font-size:11px;color:var(--ink3);font-family:var(--mono);display:block;margin-bottom:4px">Montaż/Demontaż (zł)</label>
-            <input id="bq-md" type="number" placeholder="z PDF: Montaż/Demontaż" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;font-size:13px;color:var(--ink);outline:none">
+            <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:3px">Montaż / Demontaż (zł netto)</label>
+            <input id="bq-md" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#dc2626;outline:none">
           </div>
           <div>
-            <label style="font-size:11px;color:var(--ink3);font-family:var(--mono);display:block;margin-bottom:4px">Kierowca/pracownik (zł)</label>
-            <input id="bq-wrk" type="number" placeholder="np. 325" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;font-size:13px;color:var(--ink);outline:none">
+            <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:3px">Opłata postojowa (zł netto)</label>
+            <input id="bq-postojowe" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#dc2626;outline:none">
           </div>
           <div>
-            <label style="font-size:11px;color:var(--ink3);font-family:var(--mono);display:block;margin-bottom:4px">Nocleg (zł)</label>
-            <input id="bq-hot" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;font-size:13px;color:var(--ink);outline:none">
+            <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:3px">Pracownicy (zł netto)</label>
+            <input id="bq-wrk" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#dc2626;outline:none">
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:3px">Nocleg (zł netto)</label>
+            <input id="bq-hot" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#dc2626;outline:none">
           </div>
         </div>
       </div>
+
+      <div id="bq-items" style="display:none"></div>
     </div>
     <div class="modal-footer" id="bq-footer">
       <button class="btn btn-primary" id="bq-save-btn" style="display:none" onclick="saveBooqable()">Zapisz zlecenie</button>
@@ -1819,16 +1824,27 @@ function showBqPreview(r){
   pr.classList.add('on');
   document.getElementById('bq-save-btn').style.display='';
   document.getElementById('bq-fields').innerHTML=`
-    <div class="bq-row"><span class="bq-lbl">Nr zamówienia</span><span class="bq-val">#${esc(r.no)}</span></div>
+    <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">Nr zamówienia</span><input id="bq-no" value="${esc(r.no)}" placeholder="np. 548" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:13px;color:#1a1a1a;outline:none;flex:1"></div>
     <div class="bq-row" style="align-items:flex-start">
       <span class="bq-lbl" style="padding-top:8px">Klient *</span>
       <input id="bq-client-name" value="${esc(r.client)}" placeholder="Wpisz nazwę klienta..." style="flex:1;background:var(--surface);border:1.5px solid ${r.client?'var(--green-border)':'var(--red-border)'};border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--ink)'" onblur="this.style.borderColor=this.value?'var(--green-border)':'var(--red-border)'">
     </div>
-    <div class="bq-row"><span class="bq-lbl">Data montażu</span><span class="bq-val">${r.date||'—'}${r.mountTime?' '+r.mountTime:''}</span></div>
-    <div class="bq-row"><span class="bq-lbl">Data demontażu</span><span class="bq-val">${r.demountDate||'—'}${r.demountTime?' '+r.demountTime:''}</span></div>
-    ${r.location?`<div class="bq-row"><span class="bq-lbl">Lokalizacja</span><span class="bq-val">${esc(r.location)}</span></div>`:''}
-    <div class="bq-row"><span class="bq-lbl">Kwota netto FV</span><span class="bq-val">${fmt(r.netFV)}</span></div>
-    <div class="bq-row"><span class="bq-lbl">Wynajem asortymentu</span><span class="bq-val c-green">${fmt(r.rental)}</span></div>`;
+    <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">↑ Montaż</span><div style="display:flex;gap:5px;flex:1"><input id="bq-date" type="date" value="${r.date||''}" style="background:var(--surface);border:1.5px solid #bfdbfe;border-radius:var(--r);padding:6px 8px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none;flex:1"><input id="bq-mount-time" type="time" value="${r.mountTime||''}" style="width:88px;background:var(--surface);border:1.5px solid #bfdbfe;border-radius:var(--r);padding:6px 6px;font-size:12px;color:#1a1a1a;outline:none"></div></div>
+    <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">↓ Demontaż</span><div style="display:flex;gap:5px;flex:1"><input id="bq-demount-date" type="date" value="${r.demountDate||''}" style="background:var(--surface);border:1.5px solid #fecaca;border-radius:var(--r);padding:6px 8px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none;flex:1"><input id="bq-demount-time" type="time" value="${r.demountTime||''}" style="width:88px;background:var(--surface);border:1.5px solid #fecaca;border-radius:var(--r);padding:6px 6px;font-size:12px;color:#1a1a1a;outline:none"></div></div>
+    <div class="bq-row" style="align-items:flex-start">
+      <span class="bq-lbl" style="padding-top:7px">Obiekt</span>
+      <input id="bq-venue" value="${esc(r.venue||'')}" placeholder="np. Zamek Moszna" style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none">
+    </div>
+    <div class="bq-row" style="align-items:flex-start">
+      <span class="bq-lbl" style="padding-top:7px">Miasto</span>
+      <input id="bq-city" value="${esc(r.city||'')}" placeholder="np. Moszna" style="flex:1;background:var(--surface);border:1.5px solid var(--blue-border);border-radius:var(--r);padding:6px 10px;font-size:13px;font-weight:700;color:#1d4ed8;outline:none">
+    </div>
+    <div class="bq-row" style="align-items:flex-start">
+      <span class="bq-lbl" style="padding-top:7px">Adres</span>
+      <input id="bq-street" value="${esc(r.street||r.location||'')}" placeholder="np. ul. Zamkowa 1" style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:13px;color:#1a1a1a;outline:none">
+    </div>
+    <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">Kwota netto FV</span><div style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><input id="bq-netfv" type="number" value="${r.netFV}" style="width:110px;text-align:right;background:var(--surface);border:1.5px solid var(--green-border);border-radius:var(--r);padding:6px 10px;font-size:13px;font-weight:700;color:#15803d;outline:none"><span style="font-size:11px;color:var(--ink3)">PLN</span></div></div>
+    <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">Wynajem (asortyment)</span><div style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><input id="bq-rental" type="number" value="${r.rental}" style="width:110px;text-align:right;background:var(--surface);border:1.5px solid var(--green-border);border-radius:var(--r);padding:6px 10px;font-size:13px;font-weight:700;color:#15803d;outline:none"><span style="font-size:11px;color:var(--ink3)">PLN</span></div></div>`;
   document.getElementById('bq-items').innerHTML=r.items.map(i=>
     `<div class="bq-item"><span>${i.qty}x ${esc(i.name)}</span><span>${fmt(i.total)}</span></div>`
   ).join('');
@@ -1840,21 +1856,45 @@ function showBqPreview(r){
 function saveBooqable(){
   if(!bqParsed)return;
   const r=bqParsed;
-  // Read potentially edited client name from input
+  // Read all editable fields from preview inputs
   const clientInput=document.getElementById('bq-client-name');
   if(clientInput&&clientInput.value.trim()) r.client=clientInput.value.trim();
+  const noInput=document.getElementById('bq-no');
+  if(noInput&&noInput.value.trim()) r.no=noInput.value.trim();
+  const dateInput=document.getElementById('bq-date');
+  if(dateInput&&dateInput.value) r.date=dateInput.value;
+  const mountTimeInput=document.getElementById('bq-mount-time');
+  if(mountTimeInput) r.mountTime=mountTimeInput.value;
+  const demountDateInput=document.getElementById('bq-demount-date');
+  if(demountDateInput&&demountDateInput.value) r.demountDate=demountDateInput.value;
+  const demountTimeInput=document.getElementById('bq-demount-time');
+  if(demountTimeInput) r.demountTime=demountTimeInput.value;
+  const netfvInput=document.getElementById('bq-netfv');
+  if(netfvInput&&netfvInput.value) r.netFV=parseFloat(netfvInput.value)||r.netFV;
+  const rentalInput=document.getElementById('bq-rental');
+  if(rentalInput&&rentalInput.value) r.rental=parseFloat(rentalInput.value)||r.rental;
+  const venueInput=document.getElementById('bq-venue');
+  const cityInput=document.getElementById('bq-city');
+  const streetInput=document.getElementById('bq-street');
+  if(venueInput) r.venue=venueInput.value.trim();
+  if(cityInput)  r.city=cityInput.value.trim();
+  if(streetInput) r.street=streetInput.value.trim();
+  if(r.city&&r.street) r.location=r.street+', '+r.city;
+  else r.location=r.street||r.city||r.location||'';
   const workers=parseFloat(document.getElementById('bq-wrk').value)||0;
   const hotel=parseFloat(document.getElementById('bq-hot').value)||0;
+  const postojowe=parseFloat(document.getElementById('bq-postojowe')?.value)||0;
   const month=M2K[r.date?r.date.slice(0,7):'2026-04']||'Kwiecień 26';
   const t=new Date();t.setHours(0,0,0,0);
   const ed=r.date?new Date(r.date):null;if(ed)ed.setHours(0,0,0,0);
   const transport=parseFloat(document.getElementById('bq-tr').value)||0;
   const montaz=parseFloat(document.getElementById('bq-md').value)||0;
   const costs=[];
-  if(transport>0) costs.push({id:Date.now()+1,cat:'transport',name:'Transport',amt:transport});
-  if(montaz>0)    costs.push({id:Date.now()+2,cat:'montaz',name:'Montaż / Demontaż',amt:montaz});
-  if(workers>0)   costs.push({id:Date.now()+3,cat:'pracownicy',name:'Pracownicy',amt:workers});
-  if(hotel>0)     costs.push({id:Date.now()+4,cat:'hotel',name:'Nocleg',amt:hotel});
+  if(transport>0)  costs.push({id:Date.now()+1,cat:'transport',name:'Transport',amt:transport});
+  if(montaz>0)     costs.push({id:Date.now()+2,cat:'montaz',name:'Montaż / Demontaż',amt:montaz});
+  if(postojowe>0)  costs.push({id:Date.now()+3,cat:'postojowe',name:'Opłata postojowa',amt:postojowe});
+  if(workers>0)    costs.push({id:Date.now()+4,cat:'pracownicy',name:'Pracownicy',amt:workers});
+  if(hotel>0)      costs.push({id:Date.now()+5,cat:'hotel',name:'Nocleg',amt:hotel});
   const newRev={id:Date.now(),name:r.client,no:r.no,netFV:r.netFV,rental:r.rental,
     transport:0,workers:0,hotel:0,costs,otherRevenue:0,
     date:r.date,mountTime:r.mountTime||'',
@@ -1879,7 +1919,7 @@ function resetBooqable(){
   document.getElementById('bq-preview').classList.remove('on');
   document.getElementById('bq-save-btn').style.display='none';
   document.getElementById('bq-log').textContent='';
-  ['bq-tr','bq-md','bq-wrk','bq-hot'].forEach(i=>document.getElementById(i).value='');
+  ['bq-tr','bq-md','bq-wrk','bq-hot','bq-postojowe','bq-no','bq-date','bq-mount-time','bq-demount-date','bq-demount-time','bq-netfv','bq-rental','bq-venue','bq-city','bq-street'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   document.getElementById('fi-bq').value='';
 }
 
@@ -3669,38 +3709,43 @@ function renderToday(){
 
 // ─── ORDERS ───
 function renderOrders(){
-  const rev=filt();
+  const allRev=S.revenue;
+  const months=[...new Set(allRev.map(r=>r.month))].filter(Boolean)
+    .sort((a,b)=>MONTHS_ORD.indexOf(a)-MONTHS_ORD.indexOf(b));
+
+  // Month tabs inside orders view
+  const tabsEl=document.getElementById('ord-month-tabs');
+  if(tabsEl){
+    const tabs=[{id:'all',label:'Wszystkie',count:allRev.length,fv:allRev.reduce((a,r)=>a+r.netFV,0)}];
+    months.forEach(m=>{
+      const mRev=allRev.filter(r=>r.month===m);
+      tabs.push({id:m,label:m.replace(' 26',''),count:mRev.length,fv:mRev.reduce((a,r)=>a+r.netFV,0)});
+    });
+    tabsEl.innerHTML=tabs.map(t=>`
+      <button onclick="setOrdMonth('${t.id}')" style="
+        display:flex;flex-direction:column;align-items:flex-start;gap:1px;
+        padding:8px 14px;border:1.5px solid ${ordMonth===t.id?'var(--ink)':'var(--border2)'};
+        border-radius:var(--r);cursor:pointer;
+        background:${ordMonth===t.id?'var(--ink)':'var(--surface)'};
+        color:${ordMonth===t.id?'#fff':'var(--ink2)'};
+        transition:all .15s;white-space:nowrap;min-width:80px">
+        <span style="font-size:12px;font-weight:700">${t.label}</span>
+        <span style="font-size:10px;opacity:.65;font-family:var(--mono)">${t.count} · ${fmt(t.fv)}</span>
+      </button>`).join('');
+  }
+
+  const rev=ordMonth==='all'?allRev:allRev.filter(r=>r.month===ordMonth);
   const tFV=rev.reduce((a,r)=>a+r.netFV,0);
-  const tRen=rev.reduce((a,r)=>a+r.rental,0);
-  const tKR=rev.reduce((a,r)=>a+kReal(r),0);
-  const tW20=rev.reduce((a,r)=>a+w20(r),0);
   const tProfit=rev.reduce((a,r)=>a+profit(r),0);
-  const avgMg=rev.length?pctF(tProfit,tFV):0;
-  document.getElementById('ord-met').innerHTML=`
-    <div class="met m-green"><div class="met-l">Netto FV łącznie</div><div class="met-v c-green">${fmt(tFV)}</div><div class="met-sub">${rev.length} zamówień</div></div>
-    <div class="met m-green"><div class="met-l">Łączny zysk (po kosztach)</div><div class="met-v c-green">${fmt(tProfit)}</div><div class="met-sub">śr. marża ${avgMg}%</div></div>
-    <div class="met m-amber"><div class="met-l">Koszty realizacji</div><div class="met-v c-amber">${fmt(tKR)}</div><div class="met-sub">${pct(tKR,tFV)}% FV</div></div>
-    <div class="met m-purple"><div class="met-l">Dla Mikołaja (20% wynajmu)</div><div class="met-v c-purple">${fmt(tW20)}</div><div class="met-sub">wynajem: ${fmt(tRen)}</div></div>`;
+  const avgMg=rev.length?Math.round(rev.reduce((a,r)=>a+margin(r),0)/rev.length):0;
 
-  // cashflow alerts — upcoming events needing attention
-  const today=new Date();today.setHours(0,0,0,0);
-  const cfAlerts=[];
-  S.revenue.filter(r=>r.evSt==='upcoming'&&r.date).forEach(r=>{
-    const dc=cfClientDeadline(r),dm=cfMkDeadline(r);
-    const dcd=daysUntil(dc),dmd=daysUntil(dm);
-    if(dcd!==null&&dcd>=0&&dcd<=7&&r.fvSt==='unpaid')
-      cfAlerts.push(`<span><strong>${esc(r.name)}</strong> — klient powinien zapłacić do ${fmtDate(dc)} (za ${dcd} dni)</span>`);
-    if(dmd!==null&&dmd>=0&&dmd<=6&&!r.mk20&&r.fvSt==='paid')
-      cfAlerts.push(`<span><strong>${esc(r.name)}</strong> — wyślij Mikołajowi ${fmt(w20(r))} do ${fmtDate(dm)} (za ${dmd} dni)</span>`);
-  });
-  const mkp=rev.filter(r=>r.fvSt==='paid'&&!r.mk20);
-  let alertHtml='';
-  if(mkp.length) alertHtml+=`<div class="notice n-warn" style="margin-bottom:.5rem"><span style="font-size:16px;line-height:1">!</span><div>Wyślij Mikołajowi <strong>${fmt(mkp.reduce((a,r)=>a+w20(r),0))}</strong> — ${mkp.length} opłaconych FV nierozliczonych 20%.</div></div>`;
-  if(cfAlerts.length) alertHtml+=`<div class="notice n-info" style="margin-bottom:.5rem"><span style="font-size:16px;line-height:1">⏰</span><div><strong>Cashflow — pilne terminy:</strong><br>${cfAlerts.join('<br>')}</div></div>`;
-  document.getElementById('ord-alerts').innerHTML=alertHtml;
+  // Cashflow alerts
+  buildCashflowAlertCards(document.getElementById('ord-alerts'));
 
-  document.getElementById('ord-title').textContent=GM==='all'?`Wszystkie (${rev.length})`:`${GM} — ${rev.length} zamówień`;
-  document.getElementById('ord-sum').textContent=`FV: ${fmt(tFV)} · zysk: ${fmt(tProfit)} · śr. marża: ${avgMg}%`;
+  const titleEl=document.getElementById('ord-title');
+  const sumEl=document.getElementById('ord-sum');
+  if(titleEl) titleEl.textContent=ordMonth==='all'?`Wszystkie (${rev.length})`:`${ordMonth} — ${rev.length} zamówień`;
+  if(sumEl) sumEl.textContent=`FV: ${fmt(tFV)} · zysk: ${fmt(tProfit)} · śr. marża: ${avgMg}%`;
 
   const sorted=[...rev].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('ord-tbody').innerHTML=sorted.map(r=>{
@@ -3718,10 +3763,8 @@ function renderOrders(){
             <span style="font-size:9px;font-weight:700;color:#fff;background:#1d4ed8;border-radius:3px;padding:1px 5px;flex-shrink:0">M↑</span>
             <span style="font-size:12px;font-weight:600;color:#1a1a1a;font-family:var(--mono)">${r.date||'—'}</span>
           </div>
-          ${r.demountDate?`<div style="display:flex;align-items:center;gap:5px">
-            <span style="font-size:9px;font-weight:700;color:#fff;background:#e31c1c;border-radius:3px;padding:1px 5px;flex-shrink:0">D↓</span>
-            <span style="font-size:12px;font-weight:600;color:#1a1a1a;font-family:var(--mono)">${r.demountDate}</span>
-          </div>`:'<div style="font-size:10px;color:#a1a1aa;padding-left:2px">brak daty demontażu</div>'}
+          ${r.demountDate?`<div style="display:flex;align-items:center;gap:5px"><span style="font-size:9px;font-weight:700;color:#fff;background:#dc2626;border-radius:3px;padding:1px 5px;flex-shrink:0">D↓</span><span style="font-size:12px;font-weight:600;color:#1a1a1a;font-family:var(--mono)">${r.demountDate}</span></div>`:''}
+          ${r.city?`<span style="font-size:10px;color:var(--ink3)">📍 ${esc(r.city)}</span>`:''}
         </div>
       </td>
       <td class="td-nu" style="color:#15803d;font-weight:700">${fmt(r.netFV)}</td>
@@ -3741,6 +3784,9 @@ function renderOrders(){
       </td>
     </tr>`;}).join('');
 }
+let ordMonth='all';
+function setOrdMonth(m){ordMonth=m;renderOrders();}
+
 
 // ─── COSTS ───
 function renderCostsFull(){
@@ -3896,10 +3942,40 @@ function renderMikołaj(){
   const halaT=months.length*HALA;
   const total=t20+halaT;
   const balance=p20-total;
+  // Hala timer — płatność do 10. dnia każdego miesiąca
+  const now=new Date();
+  const halaDay=10;
+  let daysToHala, halaDeadlineStr;
+  const thisMonth10=new Date(now.getFullYear(),now.getMonth(),halaDay);
+  thisMonth10.setHours(0,0,0,0);
+  const todayH=new Date();todayH.setHours(0,0,0,0);
+  const diffH=Math.round((thisMonth10-todayH)/(1000*60*60*24));
+  if(diffH>=0){
+    daysToHala=diffH;
+    halaDeadlineStr=`10 ${['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'][now.getMonth()]}`;
+  } else {
+    // Next month
+    const next10=new Date(now.getFullYear(),now.getMonth()+1,halaDay);
+    next10.setHours(0,0,0,0);
+    daysToHala=Math.round((next10-todayH)/(1000*60*60*24));
+    halaDeadlineStr=`10 ${['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'][(now.getMonth()+1)%12]}`;
+  }
+  const halaUrgent=daysToHala<=3;
+  const halaWarn=daysToHala<=7;
+  const halaColor=halaUrgent?'var(--red)':halaWarn?'var(--amber)':'var(--blue)';
+  const halaBg=halaUrgent?'var(--red-bg)':halaWarn?'var(--amber-bg)':'var(--blue-bg)';
+  const halaBorder=halaUrgent?'var(--red-border)':halaWarn?'var(--amber-border)':'var(--blue-border)';
+  const halaLabel=daysToHala===0?'dziś!':daysToHala===1?'jutro':daysToHala+' dni';
+
   document.getElementById('mk-met').innerHTML=`
     <div class="met m-purple"><div class="met-l">Należne 20% łącznie</div><div class="met-v c-purple">${fmt(t20)}</div><div class="met-sub">brutto: ${fmt(t20*1.23)}</div></div>
     <div class="met m-green"><div class="met-l">Przekazano Mikołajowi</div><div class="met-v c-green">${fmt(p20)}</div><div class="met-sub">${rev.filter(r=>r.mk20).length} zleceń</div></div>
-    <div class="met m-red"><div class="met-l">Koszt hali (${months.length} mies.)</div><div class="met-v c-red">${fmt(halaT)}</div><div class="met-sub">${fmt(HALA)} × ${months.length} miesięcy</div></div>`;
+    <div class="met m-red"><div class="met-l">Koszt hali (${months.length} mies.)</div><div class="met-v c-red">${fmt(halaT)}</div><div class="met-sub">${fmt(HALA)} × ${months.length} miesięcy</div></div>
+    <div class="met" style="background:${halaBg};border-color:${halaBorder}">
+      <div class="met-l" style="color:${halaColor}">🏭 Płatność hali</div>
+      <div class="met-v" style="color:${halaColor};font-size:22px">${halaLabel}</div>
+      <div class="met-sub" style="color:${halaColor}">termin: ${halaDeadlineStr} · ${fmt(HALA)}</div>
+    </div>`;
   const isOwe=balance<0;
   document.getElementById('mk-summary').innerHTML=`
     <div class="card" style="margin-bottom:1rem;background:${isOwe?'var(--red-bg)':'var(--green-bg)'};border-color:${isOwe?'var(--red-border)':'var(--green-border)'}">
@@ -3911,9 +3987,18 @@ function renderMikołaj(){
         <div><div style="font-size:9px;font-family:var(--mono);color:var(--ink3);margin-bottom:4px">Już przekazano</div><div style="font-size:17px;font-weight:600;color:${isOwe?'var(--red)':'var(--green)'}">${fmt(p20)}</div></div>
       </div>
       <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid ${isOwe?'var(--red-border)':'var(--green-border)'}">
-        <span style="font-size:13px;font-weight:600;color:${isOwe?'var(--red)':'var(--green)'}">
-          ${isOwe?'Do przekazania: '+fmt(Math.abs(balance)):'Saldo: '+fmt(balance)}
-        </span>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+          <span style="font-size:13px;font-weight:600;color:${isOwe?'var(--red)':'var(--green)'}">
+            ${isOwe?'Do przekazania: '+fmt(Math.abs(balance)):'Saldo: '+fmt(balance)}
+          </span>
+          <div style="background:${halaBg};border:1.5px solid ${halaBorder};border-radius:var(--r);padding:6px 14px;display:flex;align-items:center;gap:8px">
+            <span style="font-size:18px">🏭</span>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:${halaColor};letter-spacing:.04em">PŁATNOŚĆ HALI — DO ${halaDeadlineStr.toUpperCase()}</div>
+              <div style="font-size:13px;font-weight:800;color:${halaColor}">${fmt(HALA)} · za ${halaLabel}</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>`;
   document.getElementById('mk-tbody').innerHTML=[...rev].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>`
