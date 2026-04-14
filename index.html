@@ -1781,69 +1781,50 @@ function extractBooqable(text){
     const dmM=text.match(/Rozpoczęcie demontażu\s+(\d{2}-\d{2}-\d{4})\s*(\d{1,2}:\d{2})?/);
     let demountDate='',demountTime='';
     if(dmM){const p=dmM[1].split('-');demountDate=`${p[2]}-${p[1]}-${p[0]}`;demountTime=dmM[2]||'';}
-    // ── Lokalizacja: parsowanie per pole ──
+    // ── Lokalizacja ──
     let location='', street='', city='', venue='';
 
-    // Helper: pobierz wartość po etykiecie
-    function getAfterLabel(src, label){
-      const re=new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[\\s\\n]*([^\n]+)','i');
-      const m=src.match(re);
-      if(!m)return '';
-      let val=m[1].trim();
-      const stops=['Osoba odpowiedzialna','Z usług','Zamówienie','Rozpoczęcie','Michał','Meble'];
-      for(const s of stops){const si=val.indexOf(s);if(si>0)val=val.slice(0,si).trim();}
-      return val.replace(/[\s,]+$/,'').trim();
-    }
-
-    // Adres dostarczenia (może być jedno-liniowy "Miasto, Ulica, Kod, Obiekt")
-    const adresLabel=text.includes('Dokładny adres dostarczenia')?'Dokładny adres dostarczenia':'Adres dostarczenia';
+    const adresLabel=text.includes('Dokl') ? 'Dokładny adres dostarczenia' : 'Adres dostarczenia';
     const adresIdx=text.indexOf(adresLabel);
     if(adresIdx>=0){
-      const afterAdres=text.slice(adresIdx+adresLabel.length,adresIdx+adresLabel.length+250).trim();
-      // Odetnij na stop-phrasach
-      let rawAdres=afterAdres;
-      for(const s of ['Osoba odpowiedzialna','Obiekt','Data\n','Zamówienie','Rozpoczęcie']){
-        const si=rawAdres.indexOf(s);if(si>0)rawAdres=rawAdres.slice(0,si);
-      }
-      const adresLines=rawAdres.split(/[\n\r]+/).map(l=>l.trim())
-        .filter(l=>l.length>2&&!l.match(/^(Poland|Polska)$/i));
+      let rawAdres=text.slice(adresIdx+adresLabel.length, adresIdx+adresLabel.length+250).trim();
+      const stopW=['Osoba odpowiedzialna','Obiekt','Zamówienie #','Rozpoczęcie','Michał'];
+      for(const s of stopW){const si=rawAdres.indexOf(s);if(si>0)rawAdres=rawAdres.slice(0,si);}
+      const adresLines=rawAdres.split(/[\n\r]+/).map(function(l){return l.trim();})
+        .filter(function(l){return l.length>2 && !/^(Poland|Polska)$/i.test(l);});
       const firstLine=adresLines[0]||'';
-      if(firstLine.includes(',')){
-        // Format: "Miasto, Ulica, Kod, Obiekt" — rozdziel po przecinkach
-        const parts=firstLine.split(',').map(p=>p.trim()).filter(Boolean);
+      if(firstLine.indexOf(',')>=0){
+        const parts=firstLine.split(',').map(function(p){return p.trim();}).filter(Boolean);
         city=parts[0]||'';
-        const partsNoPostal=parts.slice(1).filter(p=>!p.match(/^\d{2}-\d{3}$/));
-        // Ostatni element to obiekt jeśli nie wygląda jak ulica i jest ich > 1
-        if(partsNoPostal.length>1&&!partsNoPostal[partsNoPostal.length-1].match(/^(ul\.|pl\.|al\.)/i)){
+        const partsNoPostal=parts.slice(1).filter(function(p){return !/^\d{2}-\d{3}$/.test(p);});
+        if(partsNoPostal.length>1 && !/^(ul\.|pl\.|al\.)/i.test(partsNoPostal[partsNoPostal.length-1])){
           venue=partsNoPostal[partsNoPostal.length-1];
           street=partsNoPostal.slice(0,-1).join(', ');
         } else {
           street=partsNoPostal.join(', ');
         }
       } else {
-        // Multi-line format
         street=firstLine;
-        // Kolejne linie szukaj jako kod/kraj
-        city=''; venue='';
       }
     }
 
-    // Fallback: "Miasto
-Wartość" (osobna sekcja — PDF #548 format)
+    // Fallback dla formatu z osobnymi sekcjami Miasto / Obiekt
     if(!city){
-      const miastoVal=getAfterLabel(text,'Miasto');
-      if(miastoVal&&!miastoVal.match(/^(ul\.|pl\.|\d{2}-\d{3}|Poland|Polska|Adres|Osoba)/i))
-        city=miastoVal;
+      const mIdx=text.indexOf('\nMiasto\n');
+      if(mIdx>=0){
+        const mLine=text.slice(mIdx+8,mIdx+60).split('\n')[0].trim();
+        if(mLine && !/^(ul\.|pl\.|\d{2}-\d{3}|Poland|Polska|Adres)/i.test(mLine)) city=mLine;
+      }
     }
-    // "Obiekt
-Wartość"
     if(!venue){
-      const obiektVal=getAfterLabel(text,'Obiekt');
-      if(obiektVal&&!obiektVal.match(/^(Osoba|Kamil|NIP|ul\.)/i))
-        venue=obiektVal;
+      const oIdx=text.indexOf('\nObiekt\n');
+      if(oIdx>=0){
+        const oLine=text.slice(oIdx+9,oIdx+80).split('\n')[0].trim();
+        if(oLine && !/^(Osoba|ul\.)/i.test(oLine)) venue=oLine;
+      }
     }
 
-    location=street&&city?street+', '+city:(street||city||'');
+    location=street&&city ? street+', '+city : (street||city||'');
 
     return {no,client,date,mountTime,demountDate,demountTime,location,street,city,venue,netFV,rental:rentalSum,transport,montaz,items};
   }catch(e){return null;}
