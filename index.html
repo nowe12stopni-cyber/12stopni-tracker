@@ -1151,6 +1151,7 @@ function init(){
       if(r.transport>0) r.costs.push({id:Math.random(),cat:'transport',name:'Transport',amt:r.transport});
       if(r.workers>0)   r.costs.push({id:Math.random(),cat:'pracownicy',name:'Pracownicy',amt:r.workers});
       if(r.hotel>0)     r.costs.push({id:Math.random(),cat:'hotel',name:'Nocleg',amt:r.hotel});
+      r.transport=0; r.workers=0; r.hotel=0;
     }
     if(!r.otherRevenue) r.otherRevenue=0;
   });
@@ -1218,9 +1219,9 @@ const w20=r=>r.rental*.2;
 const w80=r=>r.rental*.8;
 // kReal: all variable costs (flat fields + costs[] list)
 const kReal=r=>{
-  const flat=(r.transport||0)+(r.workers||0)+(r.hotel||0);
-  const list=(r.costs||[]).reduce((a,c)=>a+c.amt,0);
-  return flat+list;
+  // costs[] is the single source of truth — flat fields (transport/workers/hotel)
+  // are legacy compatibility fields and are already migrated into costs[] on open
+  return (r.costs||[]).reduce((a,c)=>a+c.amt,0);
 };
 // profit: FV minus variable costs minus Mikołaj's 20%
 // Correct formula: owner earns (rental*80%) + otherRevenue - costs
@@ -1381,7 +1382,7 @@ function addRev(){
   if(transport>0) costs.push({id:Date.now()+1,cat:'transport',name:'Transport',amt:transport});
   if(workers>0)   costs.push({id:Date.now()+2,cat:'pracownicy',name:'Pracownicy',amt:workers});
   if(hotel>0)     costs.push({id:Date.now()+3,cat:'hotel',name:'Nocleg',amt:hotel});
-  S.revenue.push({id:Date.now(),name,no,netFV,rental,transport,workers,hotel,costs,otherRevenue:0,date,location:'',city:'',street:'',venue:'',mountTime:'',demountDate:'',demountTime:'',evSt:ed&&ed<t?'done':'upcoming',fvSt:'unpaid',mk20:false,month});
+  S.revenue.push({id:Date.now(),name,no,netFV,rental,transport:0,workers:0,hotel:0,costs,otherRevenue:0,date,location:'',city:'',street:'',venue:'',mountTime:'',demountDate:'',demountTime:'',evSt:ed&&ed<t?'done':'upcoming',fvSt:'unpaid',mk20:false,month});
   ['rNm','rNo','rFV','rWyn','rTr','rWrk','rHot'].forEach(i=>document.getElementById(i).value='');
   syncCrmFromOrder(S.revenue[S.revenue.length-1]);
   persist();render();
@@ -1413,6 +1414,9 @@ function openOrderDetail(id){
     if(r.transport>0) r.costs.push({id:Date.now()+1,cat:'transport',name:'Transport',amt:r.transport});
     if(r.workers>0)   r.costs.push({id:Date.now()+2,cat:'pracownicy',name:'Pracownicy',amt:r.workers});
     if(r.hotel>0)     r.costs.push({id:Date.now()+3,cat:'hotel',name:'Nocleg',amt:r.hotel});
+    // Zero flat fields after migration to prevent double-counting
+    r.transport=0; r.workers=0; r.hotel=0;
+    persist();
   }
   if(!r.otherRevenue) r.otherRevenue=0;
   renderOrderDetail(r);
@@ -1773,11 +1777,12 @@ function extractBooqable(text){
     let demountDate='',demountTime='';
     if(dmM){const p=dmM[1].split('-');demountDate=`${p[2]}-${p[1]}-${p[0]}`;demountTime=dmM[2]||'';}
     // Lokalizacja
-    const locIdx=text.indexOf('Dokładny adres dostarczenia');
-    let location='';
+    // ── Lokalizacja: adres, miasto, obiekt ──
+    // Support both 'Dokładny adres dostarczenia' and 'Adres dostarczenia'
+    const locIdx=text.indexOf('Dokładny adres dostarczenia')>=0?text.indexOf('Dokładny adres dostarczenia'):text.indexOf('Adres dostarczenia');
+    let location='', street='', city='', venue='';
     if(locIdx>=0){
       const after=text.slice(locIdx+27,locIdx+300).trim();
-      // Stop at known stop phrases from Booqable PDF
       const stopPhrases=['Osoba odpowiedzialna','Z usług','Uwagi','Numer zamówienia',
                          'Data wystawienia','Płatność','Zamówienie#','\nNIP'];
       let raw=after;
@@ -1785,11 +1790,27 @@ function extractBooqable(text){
         const idx=raw.indexOf(stop);
         if(idx>0&&idx<raw.length) raw=raw.slice(0,idx);
       }
-      // Take only the first non-empty line
       location=raw.split(/[\n\r]+/).map(l=>l.trim()).filter(l=>l.length>3)[0]||'';
       location=location.slice(0,100).trim();
+      street=location;
     }
-    return {no,client,date,mountTime,demountDate,demountTime,location,netFV,rental:rentalSum,transport,montaz,items};
+    // Miasto — szukamy "Miasto\n<wartość>"
+    const miastoIdx=text.indexOf('Miasto');
+    if(miastoIdx>=0){
+      const miastoAfter=text.slice(miastoIdx+6,miastoIdx+80).trim();
+      const miastoLine=miastoAfter.split(/[\n\r]+/).map(l=>l.trim()).filter(l=>l.length>1)[0]||'';
+      if(miastoLine&&!miastoLine.match(/^(ul\.|pl\.|al\.|Adres|Osoba|NIP|Zamów)/i)){
+        city=miastoLine;
+        if(!location) location=city;
+      }
+    }
+    // Obiekt — szukamy "Obiekt\n<wartość>"
+    const obiektIdx=text.indexOf('\nObiekt\n')>=0?text.indexOf('\nObiekt\n'):text.indexOf('Obiekt\n');
+    if(obiektIdx>=0){
+      const obiektAfter=text.slice(obiektIdx+8,obiektIdx+100).trim();
+      venue=obiektAfter.split(/[\n\r]+/).map(l=>l.trim()).filter(l=>l.length>2)[0]||'';
+    }
+    return {no,client,date,mountTime,demountDate,demountTime,location,street,city,venue,netFV,rental:rentalSum,transport,montaz,items};
   }catch(e){return null;}
 }
 
@@ -1835,13 +1856,13 @@ function saveBooqable(){
   if(workers>0)   costs.push({id:Date.now()+3,cat:'pracownicy',name:'Pracownicy',amt:workers});
   if(hotel>0)     costs.push({id:Date.now()+4,cat:'hotel',name:'Nocleg',amt:hotel});
   const newRev={id:Date.now(),name:r.client,no:r.no,netFV:r.netFV,rental:r.rental,
-    transport:transport||0,workers,hotel,costs,otherRevenue:0,
+    transport:0,workers:0,hotel:0,costs,otherRevenue:0,
     date:r.date,mountTime:r.mountTime||'',
     demountDate:r.demountDate||'',demountTime:r.demountTime||'',
     location:r.location||'',
     venue:r.venue||'',
-    city:r.city||(r.location?r.location.split(',').map(s=>s.trim()).filter(Boolean).pop()||'':''),
-    street:r.street||(r.location?r.location.split(',').slice(0,-1).join(', ').trim():''),
+    city:r.city||'',
+    street:r.street||'',
     evSt:ed&&ed<t?'done':'upcoming',fvSt:'unpaid',mk20:false,month};
   S.revenue.push(newRev);
   syncCrmFromOrder(newRev);
