@@ -1782,49 +1782,75 @@ function extractBooqable(text){
     let demountDate='',demountTime='';
     if(dmM){const p=dmM[1].split('-');demountDate=`${p[2]}-${p[1]}-${p[0]}`;demountTime=dmM[2]||'';}
     // ── Lokalizacja ──
-    let location='', street='', city='', venue='';
+    var location='', street='', city='', venue='';
 
-    const adresLabel=text.includes('Dokl') ? 'Dokładny adres dostarczenia' : 'Adres dostarczenia';
-    const adresIdx=text.indexOf(adresLabel);
-    if(adresIdx>=0){
-      let rawAdres=text.slice(adresIdx+adresLabel.length, adresIdx+adresLabel.length+250).trim();
-      const stopW=['Osoba odpowiedzialna','Obiekt','Zamówienie #','Rozpoczęcie','Michał'];
-      for(const s of stopW){const si=rawAdres.indexOf(s);if(si>0)rawAdres=rawAdres.slice(0,si);}
-      const adresLines=rawAdres.split(/[\n\r]+/).map(function(l){return l.trim();})
-        .filter(function(l){return l.length>2 && !/^(Poland|Polska)$/i.test(l);});
-      const firstLine=adresLines[0]||'';
-      if(firstLine.indexOf(',')>=0){
-        const parts=firstLine.split(',').map(function(p){return p.trim();}).filter(Boolean);
-        city=parts[0]||'';
-        const partsNoPostal=parts.slice(1).filter(function(p){return !/^\d{2}-\d{3}$/.test(p);});
-        if(partsNoPostal.length>1 && !/^(ul\.|pl\.|al\.)/i.test(partsNoPostal[partsNoPostal.length-1])){
-          venue=partsNoPostal[partsNoPostal.length-1];
-          street=partsNoPostal.slice(0,-1).join(', ');
+    // Helper: znajdz wartosc po etykiecie w tekscie
+    function valAfter(src, label) {
+      var idx = src.indexOf(label);
+      if (idx < 0) return '';
+      var after = src.slice(idx + label.length, idx + label.length + 150).trim();
+      var stopWords = ['Osoba odpowiedzialna', 'Zamowienie', 'Rozpoczecie', 'Michal', 'Meble', 'NIP', 'PKO'];
+      for (var sw = 0; sw < stopWords.length; sw++) {
+        var si = after.indexOf(stopWords[sw]);
+        if (si > 0) after = after.slice(0, si);
+      }
+      var lines = after.split(/[\n\r]+/);
+      for (var li = 0; li < lines.length; li++) {
+        var l = lines[li].trim();
+        if (l.length > 1 && !/^(Poland|Polska|\d{2}-\d{3})$/i.test(l)) return l;
+      }
+      return '';
+    }
+
+    // 1. Miasto - szukaj etykiety 'Miasto' (z newline lub bez)
+    var mIdx = text.indexOf('Miasto');
+    if (mIdx >= 0) {
+      var mVal = valAfter(text, 'Miasto');
+      if (mVal && !/^(ul\.|pl\.|\d{2}-\d{3}|Adres|Osoba|NIP|Data)/i.test(mVal)) city = mVal;
+    }
+
+    // 2. Adres dostarczenia
+    var adresLabel = text.indexOf('Dokladny adres') >= 0 || text.indexOf('Dok') >= 0 && text.indexOf('adres dostarczenia') >= 0
+      ? 'adres dostarczenia' : 'Adres dostarczenia';
+    var aIdx = text.toLowerCase().indexOf('adres dostarczenia');
+    if (aIdx >= 0) {
+      var rawA = text.slice(aIdx + 18, aIdx + 300).trim();
+      var aStops = ['Osoba odpowiedzialna', 'Obiekt', 'Data', 'Zamowienie', 'Rozpoczecie', 'Michal'];
+      for (var as = 0; as < aStops.length; as++) {
+        var asi = rawA.indexOf(aStops[as]);
+        if (asi > 0) rawA = rawA.slice(0, asi);
+      }
+      var aLines = rawA.split(/[\n\r]+/)
+        .map(function(l){return l.trim();})
+        .filter(function(l){return l.length > 2 && !/^(Poland|Polska|\d{2}-\d{3})$/i.test(l);});
+      if (aLines.length > 0) {
+        var firstA = aLines[0];
+        if (firstA.indexOf(',') >= 0) {
+          // Jednolinijkowy format: 'Miasto, Ulica, Kod, Obiekt'
+          var cparts = firstA.split(',').map(function(p){return p.trim();}).filter(Boolean);
+          if (!city) city = cparts[0] || '';
+          var cNoPostal = cparts.slice(1).filter(function(p){return !/^\d{2}-\d{3}$/.test(p);});
+          if (cNoPostal.length > 1 && !/^(ul\.|pl\.|al\.)/i.test(cNoPostal[cNoPostal.length-1])) {
+            if (!venue) venue = cNoPostal[cNoPostal.length-1];
+            street = cNoPostal.slice(0,-1).join(', ');
+          } else {
+            street = cNoPostal.join(', ');
+          }
         } else {
-          street=partsNoPostal.join(', ');
+          // Wieloliniowy: kazda linia osobno
+          street = firstA;
         }
-      } else {
-        street=firstLine;
       }
     }
 
-    // Fallback dla formatu z osobnymi sekcjami Miasto / Obiekt
-    if(!city){
-      const mIdx=text.indexOf('\nMiasto\n');
-      if(mIdx>=0){
-        const mLine=text.slice(mIdx+8,mIdx+60).split('\n')[0].trim();
-        if(mLine && !/^(ul\.|pl\.|\d{2}-\d{3}|Poland|Polska|Adres)/i.test(mLine)) city=mLine;
-      }
-    }
-    if(!venue){
-      const oIdx=text.indexOf('\nObiekt\n');
-      if(oIdx>=0){
-        const oLine=text.slice(oIdx+9,oIdx+80).split('\n')[0].trim();
-        if(oLine && !/^(Osoba|ul\.)/i.test(oLine)) venue=oLine;
-      }
+    // 3. Obiekt
+    var oIdx = text.indexOf('Obiekt');
+    if (oIdx >= 0) {
+      var oVal = valAfter(text, 'Obiekt');
+      if (oVal && !/^(Osoba|ul\.|Kamil|\d)/i.test(oVal)) venue = oVal;
     }
 
-    location=street&&city ? street+', '+city : (street||city||'');
+    location = street && city ? street + ', ' + city : (street || city || '');
 
     return {no,client,date,mountTime,demountDate,demountTime,location,street,city,venue,netFV,rental:rentalSum,transport,montaz,items};
   }catch(e){return null;}
