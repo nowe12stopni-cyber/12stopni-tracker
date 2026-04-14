@@ -12,7 +12,7 @@
 :root{
   --bg:#f7f6f3;--surface:#ffffff;--surface2:#f2f1ee;--surface3:#eae9e5;
   --border:#e3e2dd;--border2:#cccbc5;
-  --ink:#18181b;--ink2:#52525b;--ink3:#a1a09a;
+  --ink:#18181b;--ink2:#52525b;--ink3:#a1a09a;--ink4:#c8c7c3;
   --green:#166534;--green-bg:#f0fdf4;--green-border:#bbf7d0;
   --amber:#92400e;--amber-bg:#fffbeb;--amber-border:#fde68a;
   --red:#e31c1c;--red-bg:#fff0f0;--red-border:#fecaca;
@@ -1701,7 +1701,7 @@ async function parseBooqable(file){
     if(!r){log.style.color='var(--red)';log.textContent='Nie udało się odczytać danych. Sprawdź czy plik to zamówienie z Booqable.';return;}
     bqParsed=r;
     showBqPreview(r);
-    log.style.color='var(--ink-green)';log.textContent='✓ Dane odczytane pomyślnie.';
+    log.style.color='var(--green)';log.textContent='✓ Dane odczytane pomyślnie.';
   }catch(e){log.style.color='var(--red)';log.textContent='Błąd: '+e.message;}
 }
 
@@ -1792,73 +1792,79 @@ function extractBooqable(text){
     // ── Lokalizacja ──
     var location='', street='', city='', venue='';
 
-    // Helper: znajdz wartosc po etykiecie w tekscie
-    function valAfter(src, label) {
+    function afterLabel(src, label) {
       var idx = src.indexOf(label);
       if (idx < 0) return '';
-      var after = src.slice(idx + label.length, idx + label.length + 150).trim();
-      var stopWords = ['Osoba odpowiedzialna', 'Zamowienie', 'Rozpoczecie', 'Michal', 'Meble', 'NIP', 'PKO'];
-      for (var sw = 0; sw < stopWords.length; sw++) {
-        var si = after.indexOf(stopWords[sw]);
-        if (si > 0) after = after.slice(0, si);
+      return src.slice(idx + label.length, idx + label.length + 250);
+    }
+    function cutAtStops(s, stops) {
+      for (var i=0; i<stops.length; i++) {
+        var m = s.search(stops[i]);
+        if (m > 0) s = s.slice(0, m);
       }
-      var lines = after.split(/[\n\r]+/);
-      for (var li = 0; li < lines.length; li++) {
-        var l = lines[li].trim();
-        if (l.length > 1 && !/^(Poland|Polska|\d{2}-\d{3})$/i.test(l)) return l;
-      }
-      return '';
+      return s;
     }
 
-    // 1. Miasto - tylko pierwsze słowo
-    var mIdx = text.indexOf('Miasto');
-    if (mIdx >= 0) {
-      var mVal = valAfter(text, 'Miasto');
-      if (mVal && !/^(ul\.|pl\.|\d{2}-\d{3}|Adres|Osoba|NIP|Data)/i.test(mVal)){
-        // Bierzemy tylko pierwsze słowo (samo miasto, bez reszty)
-        city = mVal.split(/[\s,]+/)[0] || '';
-      }
+    // 1. MIASTO — pierwsze słowo, odcinamy na następnym nagłówku
+    var cityRaw = afterLabel(text, 'Miasto');
+    cityRaw = cutAtStops(cityRaw.trim(), [
+      /Dok[^a]|Dokl/i, /Adres dostarczenia/i, /Obiekt/, /Osoba /, /NIP/, /\d{2}-\d{3}/
+    ]);
+    var cityFirst = cityRaw.trim().split(/[\s\n,]+/)[0] || '';
+    if (cityFirst && !/^(ul\.|pl\.|\d{2}-\d{3}|Poland|Polska|Adres|Osoba|NIP|Data)/i.test(cityFirst)) {
+      city = cityFirst;
     }
 
-    // 2. Adres dostarczenia
-    var adresLabel = text.indexOf('Dokladny adres') >= 0 || text.indexOf('Dok') >= 0 && text.indexOf('adres dostarczenia') >= 0
-      ? 'adres dostarczenia' : 'Adres dostarczenia';
-    var aIdx = text.toLowerCase().indexOf('adres dostarczenia');
-    if (aIdx >= 0) {
-      var rawA = text.slice(aIdx + 18, aIdx + 300).trim();
-      var aStops = ['Osoba odpowiedzialna', 'Obiekt', 'Data', 'Zamowienie', 'Rozpoczecie', 'Michal'];
-      for (var as = 0; as < aStops.length; as++) {
-        var asi = rawA.indexOf(aStops[as]);
-        if (asi > 0) rawA = rawA.slice(0, asi);
+    // 2. ADRES DOSTARCZENIA
+    var adresRaw = afterLabel(text, 'adres dostarczenia') || afterLabel(text, 'Adres dostarczenia');
+    adresRaw = cutAtStops(adresRaw.trim(), [/Obiekt/, /Osoba /, /Michal|Michał/, /Zamówienie #/]);
+    // Usun linie Poland/Polska — zostaw reszte
+    var adresLines = adresRaw.split(/[\n\r]+/);
+    var adresCleanLines = [];
+    for (var ali=0; ali<adresLines.length; ali++) {
+      var al = adresLines[ali].trim();
+      if (/^(Poland|Polska)$/i.test(al)) break;
+      if (al.length > 0) adresCleanLines.push(al);
+    }
+    var adresFirst = adresCleanLines[0] || '';
+    if (adresFirst && adresFirst.indexOf(',') >= 0) {
+      // Format: 'Miasto, Ulica, Kod, Obiekt' — rozdziel po przecinkach
+      var cparts = adresFirst.split(',').map(function(p){return p.trim();});
+      cparts = cparts.filter(function(p){return p.length > 0 && !/^\d{2}-\d{3}$/.test(p);});
+      if (!city && cparts.length > 0) city = cparts[0];
+      var hasVenue = cparts.length > 2 && !/^(ul\.|pl\.|al\.)/i.test(cparts[cparts.length-1]);
+      if (hasVenue) { venue = cparts[cparts.length-1]; street = cparts.slice(1,-1).join(', '); }
+      else { street = cparts.slice(1).join(', '); }
+    } else if (adresFirst.length > 2) {
+      // Format wieloliniowy / space-joined — odetnij kod, Poland, nagłówki
+      var stCuts = [/\d{2}-\d{3}/, /\bPoland\b/i, /\bPolska\b/i, /\bObiekt\b/, /\bOsoba\b/];
+      var stResult = adresFirst;
+      for (var sci=0; sci<stCuts.length; sci++) {
+        var scm = stResult.search(stCuts[sci]);
+        if (scm > 2) stResult = stResult.slice(0, scm).trim();
       }
-      var aLines = rawA.split(/[\n\r]+/)
-        .map(function(l){return l.trim();})
-        .filter(function(l){return l.length > 2 && !/^(Poland|Polska|\d{2}-\d{3})$/i.test(l);});
-      if (aLines.length > 0) {
-        var firstA = aLines[0];
-        if (firstA.indexOf(',') >= 0) {
-          // Jednolinijkowy format: 'Miasto, Ulica, Kod, Obiekt'
-          var cparts = firstA.split(',').map(function(p){return p.trim();}).filter(Boolean);
-          if (!city) city = cparts[0] || '';
-          var cNoPostal = cparts.slice(1).filter(function(p){return !/^\d{2}-\d{3}$/.test(p);});
-          if (cNoPostal.length > 1 && !/^(ul\.|pl\.|al\.)/i.test(cNoPostal[cNoPostal.length-1])) {
-            if (!venue) venue = cNoPostal[cNoPostal.length-1];
-            street = cNoPostal.slice(0,-1).join(', ');
-          } else {
-            street = cNoPostal.join(', ');
-          }
-        } else {
-          // Wieloliniowy: kazda linia osobno
-          street = firstA;
-        }
-      }
+      street = stResult || adresFirst;
     }
 
-    // 3. Obiekt
-    var oIdx = text.indexOf('Obiekt');
-    if (oIdx >= 0) {
-      var oVal = valAfter(text, 'Obiekt');
-      if (oVal && !/^(Osoba|ul\.|Kamil|\d)/i.test(oVal)) venue = oVal;
+    // 3. OBIEKT — szukaj sekcji (nadpisz jesli znaleziono)
+    var obiektRaw = afterLabel(text, 'Obiekt');
+    obiektRaw = cutAtStops(obiektRaw.trim(), [/Osoba /, /ul\./, /\d{2}-\d{3}/, /Poland/i, /Zamówienie/]);
+    // Pierwsza linia (newline format)
+    var obiektFirst = obiektRaw.split(/[\n\r]/)[0].trim();
+    // Fallback dla space-format: pierwsze słowo po 'Obiekt '
+    if (!obiektFirst || obiektFirst.length === 0) {
+      var objM = text.match(/Obiekt\s+(\S+)/);
+      if (objM) obiektFirst = objM[1].trim();
+    }
+    // Odetnij stop-słowa wewnątrz linii (space-joined format)
+    var objStops = [/\bOsoba\b/i, /\bul\.\b/i, /\d{2}-\d{3}/, /\bPoland\b/i];
+    for (var osi=0; osi<objStops.length; osi++) {
+      var osm = obiektFirst.search(objStops[osi]);
+      if (osm > 0) obiektFirst = obiektFirst.slice(0, osm).trim();
+    }
+    if (obiektFirst && obiektFirst.length > 0
+        && !/^(Osoba|ul\.|Kamil|\d|plac)/i.test(obiektFirst)) {
+      venue = obiektFirst;
     }
 
     location = street && city ? street + ', ' + city : (street || city || '');
@@ -2506,50 +2512,8 @@ function calcTaxForecast(month){
   return {vatNalezny,vatNaliczony,vatDoZaplaty,dochod,pitZaliczka,zusM,nettoFV,cfg};
 }
 
-function renderTaxForecast(){
-  const el=document.getElementById('tax-forecast');
-  if(!el)return;
-  // Forecast for NEXT month based on current month data
-  const now=new Date();
-  const curMo=MONTHS_ORD[now.getMonth()];
-  const nextMo=MONTHS_ORD[(now.getMonth()+1)%12];
-  const fc=calcTaxForecast(curMo); // calculate based on current month
-  const total=fc.vatDoZaplaty+fc.pitZaliczka+fc.zusM;
 
-  el.innerHTML=`
-    <div style="background:var(--ink);border-radius:var(--r-lg);padding:1.25rem 1.5rem">
-      <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem">
-        PROGNOZA PODATKÓW — do zapłaty ok. 25. ${nextMo.replace(' 26','')}
-        <span style="margin-left:8px;font-size:9px;opacity:.6">(na podstawie ${curMo.replace(' 26','')})</span>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:1rem;align-items:end">
-        <div>
-          <div style="font-size:9px;color:rgba(255,255,255,.45);margin-bottom:4px">VAT NALEŻNY<br><span style="opacity:.6">FV netto × ${Math.round(fc.cfg.vatRate*100)}%</span></div>
-          <div style="font-size:15px;font-weight:700;color:#f87171">${fmt(fc.vatNalezny)}</div>
-          <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:2px">− naliczony ${fmt(fc.vatNaliczony)}</div>
-        </div>
-        <div>
-          <div style="font-size:9px;color:rgba(255,255,255,.45);margin-bottom:4px">VAT DO ZAPŁATY<br><span style="opacity:.6">termin: 25. ${nextMo.replace(' 26','')}</span></div>
-          <div style="font-size:20px;font-weight:900;color:#f87171">${fmt(fc.vatDoZaplaty)}</div>
-        </div>
-        <div>
-          <div style="font-size:9px;color:rgba(255,255,255,.45);margin-bottom:4px">PIT ZALICZKA<br><span style="opacity:.6">dochód ${fmt(fc.dochod)} × ${Math.round(fc.cfg.pitRate*100)}%</span></div>
-          <div style="font-size:20px;font-weight:900;color:#fbbf24">${fmt(fc.pitZaliczka)}</div>
-        </div>
-        <div>
-          <div style="font-size:9px;color:rgba(255,255,255,.45);margin-bottom:4px">ZUS<br><span style="opacity:.6">duży ZUS / mies.</span></div>
-          <div style="font-size:20px;font-weight:900;color:#60a5fa">${fmt(fc.zusM)}</div>
-        </div>
-        <div style="border-left:1px solid rgba(255,255,255,.15);padding-left:1rem">
-          <div style="font-size:9px;color:rgba(255,255,255,.45);margin-bottom:4px">ŁĄCZNIE</div>
-          <div style="font-size:24px;font-weight:900;color:#fff">${fmt(total)}</div>
-        </div>
-      </div>
-      <div style="margin-top:.875rem;padding-top:.875rem;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.4)">
-        ⚠ Prognoza szacunkowa. VAT naliczony uwzględnia faktury Taxxo z VAT. PIT liczony metodą liniową od dochodu po odliczeniu kosztów. ZUS: wpisz swoją kwotę w ⚙ Stawki.
-      </div>
-    </div>`;
-}
+
 
 function renderTaxes(){
   renderTaxForecast();
@@ -2780,20 +2744,12 @@ let cfCostsMonth = null;
 // HELPERS: financial model for costs
 // ──────────────────────────────────────────────────────
 // Koszty stałe efektywne dla miesiąca — template + overrides
-function getFixedTotalForMonth(month){
-  return getFixedForMonth(month).reduce((a,c)=>a+c.amt,0);
-}
-function getFixedForMonth(month){
-  return S.fixedCosts.map(c=>{
-    const key=c.id+'_'+month;
-    const ov=S.fixedOverrides[key];
-    if(ov===null) return null; // wyłączone w tym miesiącu
-    return {...c, amt: ov!==undefined ? ov : c.amt, isOverridden: ov!==undefined};
-  }).filter(Boolean);
-}
-function getFixedTotalForMonth(month){
-  return getFixedForMonth(month).reduce((a,c)=>a+c.amt,0);
-}
+
+
+
+
+
+
 function setFixedOverride(costId,month,val){
   // val=null → wyłącz, val=number → nadpisz, val=undefined → usuń override (wróć do szablonu)
   const key=costId+'_'+month;
@@ -3294,9 +3250,6 @@ function renderTaxxoForMonth(entries){
 function updTaxxoCat(id,cat){
   const t=S.taxxoEntries.find(x=>String(x.id).replace(/'/g,'_')===String(id));if(t){t.userCat=cat;}persist();
 }
-function delTaxxoEntry(id){
-  S.taxxoEntries=(S.taxxoEntries||[]).filter(e=>String(e.id).replace(/'/g,'_')!==String(id));persist();renderCFCosts();
-}
 function updFixedCost(id,val){
   const c=S.fixedCosts.find(x=>x.id===id);if(c){c.amt=parseFloat(val)||0;}persist();renderCFCosts();
 }
@@ -3755,6 +3708,9 @@ function renderToday(){
 }
 
 
+let ordMonth='all';
+function setOrdMonth(m){ordMonth=m;renderOrders();}
+
 // ─── ORDERS ───
 function renderOrders(){
   const allRev=S.revenue;
@@ -3832,8 +3788,6 @@ function renderOrders(){
       </td>
     </tr>`;}).join('');
 }
-let ordMonth='all';
-function setOrdMonth(m){ordMonth=m;renderOrders();}
 
 
 // ─── COSTS ───
