@@ -12,7 +12,7 @@
 :root{
   --bg:#f7f6f3;--surface:#ffffff;--surface2:#f2f1ee;--surface3:#eae9e5;
   --border:#e3e2dd;--border2:#cccbc5;
-  --ink:#18181b;--ink2:#52525b;--ink3:#a1a09a;--ink4:#c8c7c3;
+  --ink:#18181b;--ink2:#52525b;--ink3:#a1a09a;
   --green:#166534;--green-bg:#f0fdf4;--green-border:#bbf7d0;
   --amber:#92400e;--amber-bg:#fffbeb;--amber-border:#fde68a;
   --red:#e31c1c;--red-bg:#fff0f0;--red-border:#fecaca;
@@ -335,7 +335,7 @@ input,select,textarea{font-family:var(--sans)}
       <svg class="sb-ico" viewBox="0 0 16 16"><path d="M8 1v14M5 4h4.5a2 2 0 010 4H5m0 0h5a2 2 0 010 4H5"/></svg>
       Koszty
     </button>
-    <button class="sb-item" onclick="go('taxes')" style="display:none">
+    <button class="sb-item" onclick="go('taxes')">
       <svg class="sb-ico" viewBox="0 0 16 16"><rect x="2" y="1.5" width="12" height="13" rx="1.5"/><path d="M5 5h6M5 8h4M5 11h3"/><path d="M10 9l2 2-2 2" stroke-width="1.2"/></svg>
       Podatki &amp; ZUS
       <span class="sb-badge" id="sb-badge-tax" style="display:none">!</span>
@@ -533,8 +533,6 @@ input,select,textarea{font-family:var(--sans)}
           Dodaj zamówienie
         </button>
       </div>
-      <!-- Month tabs -->
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;overflow-x:auto;padding-bottom:4px" id="ord-month-tabs"></div>
       <div class="grid g4" id="ord-met"></div>
       <div id="ord-alerts"></div>
       <!-- Hidden manual inputs (kept for addRev() function compatibility) -->
@@ -799,76 +797,43 @@ input,select,textarea{font-family:var(--sans)}
     <div id="v-taxes" class="view">
       <div class="page-hd" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
         <div>
-          <div class="page-title">Podatki &amp; ZUS</div>
-          <div class="page-sub">VAT 23% · PIT liniowy 19% · duży ZUS · prognoza</div>
+          <div class="page-title">VAT</div>
+          <div class="page-sub">Deklaracja JPK_V7M · termin płatności 25. następnego miesiąca</div>
         </div>
-        <button onclick="openTaxConfigModal()" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink2)">⚙ Stawki</button>
+        <button onclick="openTaxConfigModal()" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink2)">⚙ Stawka VAT</button>
       </div>
-      <div id="tax-forecast" style="margin-bottom:1.25rem"></div>
-      <div class="grid g4" id="tax-met"></div>
-      <div id="tax-reminder"></div>
-      <div class="tcol">
-        <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Dodaj rozliczenie</div>
-          </div>
-          <div style="display:grid;gap:10px">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <div>
-                <label style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px">Miesiąc</label>
-                <select id="tax-month" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;font-size:13px;color:var(--ink);outline:none">
-                  <option>Styczeń 26</option><option>Luty 26</option><option>Marzec 26</option>
-                  <option selected>Kwiecień 26</option><option>Maj 26</option><option>Czerwiec 26</option>
-                  <option>Lipiec 26</option><option>Sierpień 26</option><option>Wrzesień 26</option>
-                  <option>Październik 26</option><option>Listopad 26</option><option>Grudzień 26</option>
-                </select>
-              </div>
-              <div>
-                <label style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px">Przychód brutto (FV)</label>
-                <input type="number" id="tax-revenue" placeholder="zł" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;font-size:13px;color:var(--ink);outline:none">
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-              <div>
-                <label style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px">VAT (zł)</label>
-                <input type="number" id="tax-vat" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;font-size:13px;color:var(--ink);outline:none">
-              </div>
-              <div>
-                <label style="font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px">PIT / podatek (zł)</label>
-                <input type="number" id="tax-pit" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;font-size:13px;color:var(--ink);outline:none">
-              </div>
-              <div>
-                <label style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px">ZUS / składki (zł)</label>
-                <input type="number" id="tax-zus" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;font-size:13px;color:var(--ink);outline:none">
-              </div>
-            </div>
-            <div>
-              <label style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px">Notatki</label>
-              <input type="text" id="tax-notes" placeholder="np. zaliczka opłacona, korekta VAT..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:9px 12px;font-size:13px;color:var(--ink);outline:none">
-            </div>
-            <button onclick="addTaxEntry()" style="background:var(--ink);border:none;border-radius:var(--r);padding:11px;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Zapisz rozliczenie</button>
-          </div>
+      <div id="vat-deadline-banner" style="margin-bottom:1.25rem"></div>
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-hd">
+          <div class="card-title">VAT należny per miesiąc</div>
+          <div style="font-size:11px;color:var(--ink3)">Na podstawie Twoich zamówień · VAT należny − naliczony z Taxxo = do zapłaty</div>
         </div>
-        <div class="card">
-          <div class="card-hd"><div class="card-title">Zestawienie roczne</div></div>
-          <div style="position:relative;height:280px"><canvas id="tax-chart"></canvas></div>
-        </div>
+        <div id="vat-table-wrap"></div>
       </div>
       <div class="card">
-        <div class="card-hd"><div class="card-title">Historia rozliczeń</div></div>
-        <div style="overflow-x:auto">
-          <table class="tbl">
-            <thead><tr>
-              <th>Miesiąc</th><th>Przychód FV</th>
-              <th class="tr" style="color:var(--red)">VAT</th>
-              <th class="tr" style="color:var(--amber)">PIT</th>
-              <th class="tr" style="color:var(--blue)">ZUS</th>
-              <th class="tr">Razem podatki</th>
-              <th class="tr">Netto po podatkach</th>
-              <th>Notatki</th><th></th>
-            </tr></thead>
-            <tbody id="tax-tbody"></tbody>
-          </table>
+        <div class="card-hd"><div class="card-title">Jak naliczamy VAT</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem">
+          <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--r);padding:12px">
+            <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">VAT NALEŻNY</div>
+            <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:4px">Netto FV × 23%</div>
+            <div style="font-size:11px;color:var(--ink3)">VAT naliczony klientom — odprowadzasz do US</div>
+          </div>
+          <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);padding:12px">
+            <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">VAT NALICZONY</div>
+            <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:4px">VAT z faktur Taxxo</div>
+            <div style="font-size:11px;color:var(--ink3)">VAT od zakupów firmowych — odliczasz od należnego</div>
+          </div>
+          <div style="background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);padding:12px">
+            <div style="font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">DO ZAPŁATY</div>
+            <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:4px">Należny − Naliczony</div>
+            <div style="font-size:11px;color:var(--ink3)">Płatne do 25. kolejnego miesiąca · JPK_V7M</div>
+          </div>
+        </div>
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);font-size:12px;color:var(--ink3);line-height:1.8">
+          <strong style="color:var(--ink2)">Obowiązek VAT powstaje</strong> z chwilą wykonania usługi lub wystawienia FV (co wcześniejsze).
+          Jako czynny podatnik VAT składasz <strong style="color:var(--ink2)">JPK_V7M miesięcznie</strong>.
+          Faktury kosztowe obniżają VAT tylko przy zakupach związanych z działalnością.
+          <span style="color:var(--red);font-weight:600"> Wartości szacunkowe — skonsultuj z księgowym.</span>
         </div>
       </div>
     </div>
@@ -972,37 +937,34 @@ input,select,textarea{font-family:var(--sans)}
     <div class="imp-log" id="bq-log"></div>
     <!-- Podgląd sparsowanych danych -->
     <div class="bq-preview" id="bq-preview">
-      <div style="font-size:10px;font-family:var(--mono);color:var(--ink3);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em">Sprawdź i uzupełnij dane — wszystkie pola są edytowalne</div>
+      <div style="font-size:11px;font-family:var(--mono);color:var(--ink3);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em">Odczytane dane — sprawdź i zapisz</div>
       <div id="bq-fields"></div>
-
-      <!-- Koszty realizacji — zintegrowane w formularzu -->
-      <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
-        <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.625rem">🔧 Koszty realizacji</div>
+      <div class="bq-items" id="bq-items-wrap">
+        <div style="font-size:10px;font-family:var(--mono);color:var(--ink3);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.08em">Pozycje zamówienia</div>
+        <div id="bq-items"></div>
+      </div>
+      <!-- Uzupełnienie kosztów realizacji -->
+      <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border)">
+        <div style="font-size:10px;font-family:var(--mono);color:var(--ink3);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em">Uzupełnij koszty realizacji</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div>
-            <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:3px">Transport (zł netto)</label>
-            <input id="bq-tr" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#dc2626;outline:none">
+            <label style="font-size:11px;color:var(--ink3);font-family:var(--mono);display:block;margin-bottom:4px">Transport (zł)</label>
+            <input id="bq-tr" type="number" placeholder="z PDF: Transport" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;font-size:13px;color:var(--ink);outline:none">
           </div>
           <div>
-            <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:3px">Montaż / Demontaż (zł netto)</label>
-            <input id="bq-md" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#dc2626;outline:none">
+            <label style="font-size:11px;color:var(--ink3);font-family:var(--mono);display:block;margin-bottom:4px">Montaż/Demontaż (zł)</label>
+            <input id="bq-md" type="number" placeholder="z PDF: Montaż/Demontaż" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;font-size:13px;color:var(--ink);outline:none">
           </div>
           <div>
-            <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:3px">Opłata postojowa (zł netto)</label>
-            <input id="bq-postojowe" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#dc2626;outline:none">
+            <label style="font-size:11px;color:var(--ink3);font-family:var(--mono);display:block;margin-bottom:4px">Kierowca/pracownik (zł)</label>
+            <input id="bq-wrk" type="number" placeholder="np. 325" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;font-size:13px;color:var(--ink);outline:none">
           </div>
           <div>
-            <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:3px">Pracownicy (zł netto)</label>
-            <input id="bq-wrk" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#dc2626;outline:none">
-          </div>
-          <div>
-            <label style="font-size:11px;color:var(--ink3);display:block;margin-bottom:3px">Nocleg (zł netto)</label>
-            <input id="bq-hot" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#dc2626;outline:none">
+            <label style="font-size:11px;color:var(--ink3);font-family:var(--mono);display:block;margin-bottom:4px">Nocleg (zł)</label>
+            <input id="bq-hot" type="number" placeholder="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;font-size:13px;color:var(--ink);outline:none">
           </div>
         </div>
       </div>
-
-      <div id="bq-items" style="display:none"></div>
     </div>
     <div class="modal-footer" id="bq-footer">
       <button class="btn btn-primary" id="bq-save-btn" style="display:none" onclick="saveBooqable()">Zapisz zlecenie</button>
@@ -1147,16 +1109,13 @@ function init(){
     if(!r.mountTime) r.mountTime='';
     if(!r.demountTime) r.demountTime='';
     if(!r.location) r.location='';
-    if(!r.venue) r.venue='';
     if(!r.city) r.city='';
     if(!r.street) r.street='';
-    if(!r.venue) r.venue='';
     if(!r.costs){
       r.costs=[];
       if(r.transport>0) r.costs.push({id:Math.random(),cat:'transport',name:'Transport',amt:r.transport});
       if(r.workers>0)   r.costs.push({id:Math.random(),cat:'pracownicy',name:'Pracownicy',amt:r.workers});
       if(r.hotel>0)     r.costs.push({id:Math.random(),cat:'hotel',name:'Nocleg',amt:r.hotel});
-      r.transport=0; r.workers=0; r.hotel=0;
     }
     if(!r.otherRevenue) r.otherRevenue=0;
   });
@@ -1224,9 +1183,9 @@ const w20=r=>r.rental*.2;
 const w80=r=>r.rental*.8;
 // kReal: all variable costs (flat fields + costs[] list)
 const kReal=r=>{
-  // costs[] is the single source of truth — flat fields (transport/workers/hotel)
-  // are legacy compatibility fields and are already migrated into costs[] on open
-  return (r.costs||[]).reduce((a,c)=>a+c.amt,0);
+  const flat=(r.transport||0)+(r.workers||0)+(r.hotel||0);
+  const list=(r.costs||[]).reduce((a,c)=>a+c.amt,0);
+  return flat+list;
 };
 // profit: FV minus variable costs minus Mikołaj's 20%
 // Correct formula: owner earns (rental*80%) + otherRevenue - costs
@@ -1387,7 +1346,7 @@ function addRev(){
   if(transport>0) costs.push({id:Date.now()+1,cat:'transport',name:'Transport',amt:transport});
   if(workers>0)   costs.push({id:Date.now()+2,cat:'pracownicy',name:'Pracownicy',amt:workers});
   if(hotel>0)     costs.push({id:Date.now()+3,cat:'hotel',name:'Nocleg',amt:hotel});
-  S.revenue.push({id:Date.now(),name,no,netFV,rental,transport:0,workers:0,hotel:0,costs,otherRevenue:0,date,location:'',city:'',street:'',venue:'',mountTime:'',demountDate:'',demountTime:'',evSt:ed&&ed<t?'done':'upcoming',fvSt:'unpaid',mk20:false,month});
+  S.revenue.push({id:Date.now(),name,no,netFV,rental,transport,workers,hotel,costs,otherRevenue:0,date,location:'',city:'',street:'',mountTime:'',demountDate:'',demountTime:'',evSt:ed&&ed<t?'done':'upcoming',fvSt:'unpaid',mk20:false,month});
   ['rNm','rNo','rFV','rWyn','rTr','rWrk','rHot'].forEach(i=>document.getElementById(i).value='');
   syncCrmFromOrder(S.revenue[S.revenue.length-1]);
   persist();render();
@@ -1419,9 +1378,6 @@ function openOrderDetail(id){
     if(r.transport>0) r.costs.push({id:Date.now()+1,cat:'transport',name:'Transport',amt:r.transport});
     if(r.workers>0)   r.costs.push({id:Date.now()+2,cat:'pracownicy',name:'Pracownicy',amt:r.workers});
     if(r.hotel>0)     r.costs.push({id:Date.now()+3,cat:'hotel',name:'Nocleg',amt:r.hotel});
-    // Zero flat fields after migration to prevent double-counting
-    r.transport=0; r.workers=0; r.hotel=0;
-    persist();
   }
   if(!r.otherRevenue) r.otherRevenue=0;
   renderOrderDetail(r);
@@ -1435,140 +1391,113 @@ function renderOrderDetail(r){
   const deadlineMk=cfMkDeadline(r);
   const dcDays=daysUntil(deadlineClient);
   const dmDays=daysUntil(deadlineMk);
-  // Editable title
+  // Make title editable — inline input
   const titleEl=document.getElementById('order-detail-title');
-  titleEl.innerHTML=`<input value="${esc(r.name)}" onchange="updRevField(${r.id},'name',this.value)" style="background:none;border:none;border-bottom:2px solid var(--border);outline:none;font-size:18px;font-weight:800;color:#1a1a1a;width:calc(100% - 80px);font-family:var(--sans);padding-bottom:2px;transition:border-color .2s" onfocus="this.style.borderColor='var(--ink)'" onblur="this.style.borderColor='var(--border)'">&nbsp;<span style="font-size:14px;font-weight:500;color:var(--ink3)">${r.no?'#'+esc(r.no):''}</span>`;
-
-  // VAT calculation (23%)
-  const vatAmt=Math.round(r.netFV*0.23*100)/100;
-  const bruttoAmt=Math.round((r.netFV+vatAmt)*100)/100;
+  titleEl.innerHTML=`<input value="${esc(r.name)}" onchange="updRevField(${r.id},'name',this.value);this.style.fontWeight='900'" style="background:none;border:none;border-bottom:2px solid var(--border);outline:none;font-size:18px;font-weight:800;color:#1a1a1a;width:100%;font-family:var(--sans);padding-bottom:2px;transition:border-color .2s" onfocus="this.style.borderColor='var(--ink)'" onblur="this.style.borderColor='var(--border)'">&nbsp;<span style="font-size:14px;font-weight:500;color:var(--ink3)">${r.no?'#'+esc(r.no):''}</span>`;
 
   el.innerHTML=`
-  <!-- KPI strip -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem">
-    <div style="background:var(--green-bg);border:1.5px solid var(--green-border);border-radius:var(--r);padding:12px;text-align:center">
-      <div style="font-size:9px;font-weight:700;color:var(--green);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">ZYSK</div>
-      <div style="font-size:20px;font-weight:900;color:var(--green)">${fmt(pr)}</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:1.25rem">
+    <div style="background:var(--green-bg);border:1.5px solid var(--green-border);border-radius:var(--r);padding:14px;text-align:center">
+      <div style="font-size:9px;font-weight:700;color:var(--green);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">ZYSK</div>
+      <div style="font-size:22px;font-weight:900;color:var(--green);letter-spacing:-.02em">${fmt(pr)}</div>
     </div>
-    <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:12px;text-align:center">
-      <div style="font-size:9px;font-weight:700;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">MARŻA</div>
-      <div style="font-size:20px;font-weight:900;color:${mg>=30?'var(--green)':mg>=15?'var(--amber)':'var(--red)'}">${mg}%</div>
+    <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;text-align:center">
+      <div style="font-size:9px;font-weight:700;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">MARŻA</div>
+      <div style="font-size:22px;font-weight:900;color:${mg>=30?'var(--green)':mg>=15?'var(--amber)':'var(--red)'};letter-spacing:-.02em">${mg}%</div>
     </div>
-    <div style="background:var(--purple-bg);border:1.5px solid var(--purple-border);border-radius:var(--r);padding:12px;text-align:center">
-      <div style="font-size:9px;font-weight:700;color:var(--purple);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">MIKOŁAJ (20% wynajmu)</div>
-      <div style="font-size:20px;font-weight:900;color:var(--purple)">${fmt(mk)}</div>
+    <div style="background:var(--purple-bg);border:1.5px solid var(--purple-border);border-radius:var(--r);padding:14px;text-align:center">
+      <div style="font-size:9px;font-weight:700;color:var(--purple);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">MIKOŁAJ (20%)</div>
+      <div style="font-size:22px;font-weight:900;color:var(--purple);letter-spacing:-.02em">${fmt(mk)}</div>
     </div>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
 
-    <!-- LEWA: Logistyka eventu -->
-    <div>
-      <div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.75rem">📋 Logistyka eventu</div>
-      <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px">
+    <!-- LEWA: Logistyka + Finansowe -->
+    <div style="display:flex;flex-direction:column;gap:1rem">
 
-        <!-- Daty montaż / demontaż -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <!-- Logistyka eventu -->
+      <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:14px">
+        <div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">📋 Logistyka eventu</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
           <div>
-            <label style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px">↑ MONTAŻ</label>
-            <div style="display:flex;gap:3px">
-              <input type="date" value="${r.date||''}" onchange="updRevField(${r.id},'date',this.value)" style="flex:1;background:var(--surface);border:1.5px solid #bfdbfe;border-radius:4px;padding:5px 7px;font-size:12px;font-weight:600;color:#1a1a1a;outline:none;min-width:0">
-              <input type="time" value="${r.mountTime||''}" onchange="updRevField(${r.id},'mountTime',this.value)" style="width:66px;background:var(--surface);border:1.5px solid #bfdbfe;border-radius:4px;padding:5px 4px;font-size:12px;color:#1a1a1a;outline:none">
+            <label style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px">↑ DATA MONTAŻU</label>
+            <div style="display:flex;gap:4px">
+              <input type="date" value="${r.date||''}" onchange="updRevField(${r.id},'date',this.value)" style="flex:1;background:var(--surface);border:1.5px solid #bfdbfe;border-radius:4px;padding:6px 8px;font-size:12px;font-weight:600;color:#1a1a1a;outline:none;min-width:0">
+              <input type="time" value="${r.mountTime||''}" onchange="updRevField(${r.id},'mountTime',this.value)" style="width:68px;background:var(--surface);border:1.5px solid #bfdbfe;border-radius:4px;padding:6px 5px;font-size:12px;color:#1a1a1a;outline:none">
             </div>
           </div>
           <div>
-            <label style="font-size:9px;font-weight:700;color:#dc2626;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px">↓ DEMONTAŻ</label>
-            <div style="display:flex;gap:3px">
-              <input type="date" value="${r.demountDate||''}" onchange="updRevField(${r.id},'demountDate',this.value)" style="flex:1;background:var(--surface);border:1.5px solid #fecaca;border-radius:4px;padding:5px 7px;font-size:12px;font-weight:600;color:#1a1a1a;outline:none;min-width:0">
-              <input type="time" value="${r.demountTime||''}" onchange="updRevField(${r.id},'demountTime',this.value)" style="width:66px;background:var(--surface);border:1.5px solid #fecaca;border-radius:4px;padding:5px 4px;font-size:12px;color:#1a1a1a;outline:none">
+            <label style="font-size:9px;font-weight:700;color:#e31c1c;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px">↓ DATA DEMONTAŻU</label>
+            <div style="display:flex;gap:4px">
+              <input type="date" value="${r.demountDate||''}" onchange="updRevField(${r.id},'demountDate',this.value)" style="flex:1;background:var(--surface);border:1.5px solid #fecaca;border-radius:4px;padding:6px 8px;font-size:12px;font-weight:600;color:#1a1a1a;outline:none;min-width:0">
+              <input type="time" value="${r.demountTime||''}" onchange="updRevField(${r.id},'demountTime',this.value)" style="width:68px;background:var(--surface);border:1.5px solid #fecaca;border-radius:4px;padding:6px 5px;font-size:12px;color:#1a1a1a;outline:none">
             </div>
           </div>
         </div>
-
-        <!-- Obiekt -->
-        <div>
-          <label style="font-size:9px;font-weight:700;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px">🏛 OBIEKT</label>
-          <input type="text" value="${esc(r.venue||'')}" placeholder="np. Zamek Moszna" onchange="updRevField(${r.id},'venue',this.value)" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:4px;padding:5px 9px;font-size:12px;font-weight:500;color:#1a1a1a;outline:none;box-sizing:border-box">
-        </div>
-
-        <!-- Adres: ulica + miasto -->
         <div style="display:grid;grid-template-columns:1fr auto;gap:6px">
           <div>
             <label style="font-size:9px;font-weight:700;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px">🏠 ULICA / ADRES</label>
-            <input type="text" value="${esc(r.street||r.location||'')}" placeholder="np. ul. Zamkowa 1" onchange="updRevField(${r.id},'street',this.value)" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:4px;padding:5px 9px;font-size:12px;color:#1a1a1a;outline:none;box-sizing:border-box">
+            <input type="text" value="${esc(r.street||r.location||'')}" placeholder="np. ul. Marszałkowska 10" onchange="updRevField(${r.id},'street',this.value)" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:4px;padding:6px 10px;font-size:12px;font-weight:500;color:#1a1a1a;outline:none;box-sizing:border-box">
           </div>
           <div style="min-width:110px">
-            <label style="font-size:9px;font-weight:700;color:#1d4ed8;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px">📍 MIASTO</label>
-            <input type="text" value="${esc(r.city||(r.location?r.location.split(',').pop().trim():''))}" placeholder="np. Moszna" onchange="updRevField(${r.id},'city',this.value)" style="width:100%;background:var(--surface);border:1.5px solid #bfdbfe;border-radius:4px;padding:5px 9px;font-size:12px;font-weight:700;color:#1d4ed8;outline:none;box-sizing:border-box">
+            <label style="font-size:9px;font-weight:700;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:3px">📍 MIASTO</label>
+            <input type="text" value="${esc(r.city||(r.location?r.location.split(',').pop().trim():''))}" placeholder="np. Warszawa" onchange="updRevField(${r.id},'city',this.value)" style="width:100%;background:var(--surface);border:1.5px solid #bfdbfe;border-radius:4px;padding:6px 10px;font-size:12px;font-weight:700;color:#1d4ed8;outline:none;box-sizing:border-box">
           </div>
         </div>
+      </div>
 
-        <!-- Terminy cashflow -->
-        ${r.evSt==='upcoming'&&r.date?`
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:8px;border-top:1px solid var(--border)">
-          <div style="background:${dcDays!==null&&dcDays<=3?'var(--red-bg)':dcDays!==null&&dcDays<=7?'var(--amber-bg)':'var(--blue-bg)'};border:1px solid ${dcDays!==null&&dcDays<=3?'var(--red-border)':dcDays!==null&&dcDays<=7?'var(--amber-border)':'var(--blue-border)'};border-radius:var(--r);padding:8px 10px">
-            <div style="font-size:9px;font-weight:700;color:var(--ink3);margin-bottom:2px">KLIENT PŁACI</div>
-            <div style="font-size:13px;font-weight:800;color:#1a1a1a">${fmtDate(deadlineClient)}</div>
-            <div style="font-size:10px;color:var(--ink3)">${dcDays!==null?(dcDays<0?'⚠ po terminie':dcDays===0?'dziś':dcDays+' dni'):''}</div>
+      <!-- Terminy cashflow (upcoming only) -->
+      ${r.evSt==='upcoming'&&r.date?`
+      <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:14px">
+        <div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">⏰ Terminy cashflow</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:${dcDays!==null&&dcDays<=3?'var(--red-bg)':dcDays!==null&&dcDays<=7?'var(--amber-bg)':'var(--blue-bg)'};border:1px solid ${dcDays!==null&&dcDays<=3?'var(--red-border)':dcDays!==null&&dcDays<=7?'var(--amber-border)':'var(--blue-border)'};border-radius:var(--r);padding:10px">
+            <div style="font-size:9px;font-weight:700;color:var(--ink3);margin-bottom:3px">KLIENT PŁACI</div>
+            <div style="font-size:14px;font-weight:800;color:#1a1a1a">${fmtDate(deadlineClient)}</div>
+            <div style="font-size:11px;color:var(--ink3)">${dcDays!==null?(dcDays<0?'⚠ PO TERMINIE':dcDays===0?'dziś':dcDays+' dni'):''}</div>
           </div>
-          <div style="background:${dmDays!==null&&dmDays<=3?'var(--red-bg)':'var(--purple-bg)'};border:1px solid ${dmDays!==null&&dmDays<=3?'var(--red-border)':'var(--purple-border)'};border-radius:var(--r);padding:8px 10px">
-            <div style="font-size:9px;font-weight:700;color:var(--ink3);margin-bottom:2px">MIKOŁAJ</div>
-            <div style="font-size:13px;font-weight:800;color:#1a1a1a">${fmtDate(deadlineMk)}</div>
-            <div style="font-size:10px;color:var(--ink3)">${dmDays!==null?(dmDays<0?'⚠ po terminie':dmDays===0?'dziś':dmDays+' dni'):''}</div>
+          <div style="background:${dmDays!==null&&dmDays<=3?'var(--red-bg)':dmDays!==null&&dmDays<=6?'var(--amber-bg)':'var(--purple-bg)'};border:1px solid ${dmDays!==null&&dmDays<=3?'var(--red-border)':dmDays!==null&&dmDays<=6?'var(--amber-border)':'var(--purple-border)'};border-radius:var(--r);padding:10px">
+            <div style="font-size:9px;font-weight:700;color:var(--ink3);margin-bottom:3px">MIKOŁAJ</div>
+            <div style="font-size:14px;font-weight:800;color:#1a1a1a">${fmtDate(deadlineMk)}</div>
+            <div style="font-size:11px;color:var(--ink3)">${dmDays!==null?(dmDays<0?'⚠ PO TERMINIE':dmDays===0?'dziś':dmDays+' dni'):''}</div>
           </div>
-        </div>`:''}
+        </div>
+      </div>`:''}
+
+      <!-- Przychód -->
+      <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:14px">
+        <div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">💰 Przychód</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <span style="color:var(--ink2);font-weight:500">Wynajem asortymentu</span>
+          <span style="font-family:var(--mono);font-weight:700;color:var(--green)">${fmt(r.rental)}</span>
+        </div>
+        ${r.otherRevenue>0?`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--ink2);font-weight:500">Inne przychody</span><span style="font-family:var(--mono);font-weight:700;color:var(--green)">${fmt(r.otherRevenue)}</span></div>`:''}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:13px;font-weight:700">
+          <span>Netto FV łącznie</span>
+          <span style="font-family:var(--mono);color:var(--green)">${fmt(r.netFV)}</span>
+        </div>
       </div>
     </div>
 
-    <!-- PRAWA: Koszty + Przychód -->
-    <div style="display:flex;flex-direction:column;gap:1rem">
-
-      <!-- Koszty realizacji -->
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
-          <div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase">🔧 Koszty realizacji</div>
-          <button class="card-action" onclick="addOrderCost(${r.id})" style="font-size:11px;padding:4px 12px">+ Dodaj</button>
-        </div>
-        <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden" id="od-costs-${r.id}">
-          ${renderOrderCostsList(r)}
-        </div>
+    <!-- PRAWA: Koszty realizacji -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem">
+        <div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase">🔧 Koszty realizacji</div>
+        <button class="card-action" onclick="addOrderCost(${r.id})" style="font-size:11px;padding:4px 12px">+ Dodaj koszt</button>
       </div>
-
-      <!-- Przychód — netto / VAT / brutto -->
-      <div>
-        <div style="font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.625rem">💰 Przychód</div>
-        <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border)">
-            <span style="font-size:12px;font-weight:600;color:var(--ink2)">Wynajem asortymentu</span>
-            <span style="font-size:13px;font-family:var(--mono);font-weight:700;color:#15803d">${fmt(r.rental)}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border)">
-            <span style="font-size:12px;font-weight:600;color:var(--ink2)">Kwota netto FV</span>
-            <div style="display:flex;align-items:center;gap:6px">
-              <input type="number" value="${r.netFV}" onchange="updRevField(${r.id},'netFV',parseFloat(this.value)||0);renderOrderDetail(S.revenue.find(x=>x.id===${r.id}))" style="width:90px;text-align:right;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:13px;font-family:var(--mono);font-weight:700;color:#15803d;outline:none">
-              <span style="font-size:11px;color:var(--ink3)">PLN</span>
-            </div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border)">
-            <span style="font-size:12px;color:var(--ink3)">VAT 23%</span>
-            <span style="font-size:12px;font-family:var(--mono);color:var(--ink2)">${fmt(vatAmt)}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface)">
-            <span style="font-size:13px;font-weight:700;color:#1a1a1a">Kwota brutto</span>
-            <span style="font-size:15px;font-family:var(--mono);font-weight:800;color:#1a1a1a">${fmt(bruttoAmt)}</span>
-          </div>
-        </div>
+      <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden" id="od-costs-${r.id}">
+        ${renderOrderCostsList(r)}
       </div>
-
-      <!-- Podsumowanie zysku -->
-      <div style="background:var(--ink);color:#fff;border-radius:var(--r);padding:12px 14px">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;opacity:.6">
-          <span>Koszty realizacji</span><span style="font-family:var(--mono)">- ${fmt(k)}</span>
+      <!-- Podsumowanie -->
+      <div style="background:var(--ink);color:#fff;border-radius:var(--r);padding:14px;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;opacity:.7">
+          <span>Koszty łącznie</span><span style="font-family:var(--mono)">${fmt(k)}</span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px;opacity:.6">
-          <span>Mikołaj (20% wynajmu)</span><span style="font-family:var(--mono)">- ${fmt(mk)}</span>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px;opacity:.7">
+          <span>Mikołaj (20% wynajmu)</span><span style="font-family:var(--mono)">${fmt(mk)}</span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;padding-top:7px;border-top:1px solid rgba(255,255,255,.2)">
+        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;padding-top:8px;border-top:1px solid rgba(255,255,255,.2)">
           <span>Twój zysk</span>
           <span style="font-family:var(--mono);color:${pr>=0?'#4ade80':'#f87171'}">${fmt(pr)}</span>
         </div>
@@ -1576,20 +1505,19 @@ function renderOrderDetail(r){
     </div>
   </div>
 
-  <!-- Statusy -->
+  <!-- Statusy na dole -->
   <div style="display:flex;gap:8px;align-items:center;padding-top:1rem;border-top:1px solid var(--border);flex-wrap:wrap">
-    <span style="font-size:12px;color:var(--ink3);font-weight:600">FV:</span>
+    <span style="font-size:12px;color:var(--ink3);font-weight:600">Status FV:</span>
     <button class="st-btn ${r.fvSt==='paid'?'st-paid':'st-unpaid'}" onclick="togFV(${r.id})">${r.fvSt==='paid'?'✓ Opłacona':'Nieopłacona'}</button>
-    <span style="font-size:12px;color:var(--ink3);font-weight:600;margin-left:6px">Event:</span>
-    <button class="st-btn ${r.evSt==='done'?'st-dn':'st-up'}" onclick="cycEv(${r.id})">${r.evSt==='done'?'Zakończony':'Nadchodzący'}</button>
-    <span style="font-size:12px;color:var(--ink3);font-weight:600;margin-left:6px">Mikołaj:</span>
-    <button class="st-btn ${r.mk20?'st-paid':'st-wait'}" onclick="togMk(${r.id})">${r.mk20?'✓ Rozliczony':'Do rozliczenia'}</button>
+    <span style="font-size:12px;color:var(--ink3);font-weight:600;margin-left:8px">Wydarzenie:</span>
+    <button class="st-btn ${r.evSt==='done'?'st-dn':'st-up'}" onclick="cycEv(${r.id})">${r.evSt==='done'?'Zakończone':'Nadchodzące'}</button>
+    <span style="font-size:12px;color:var(--ink3);font-weight:600;margin-left:8px">Mikołaj 20%:</span>
+    <button class="st-btn ${r.mk20?'st-paid':'st-wait'}" onclick="togMk(${r.id})">${r.mk20?'Przekazane':'Do przekazania'}</button>
     <div style="margin-left:auto">
-      <button onclick="delRevConfirm(${r.id});closeModal('modal-order-detail')" style="background:none;border:1.5px solid var(--red-border);border-radius:var(--r);padding:5px 12px;color:var(--red);font-size:12px;font-weight:700;cursor:pointer">🗑 Usuń</button>
+      <button onclick="delRevConfirm(${r.id});closeModal('modal-order-detail')" style="background:none;border:1.5px solid var(--red-border);border-radius:var(--r);padding:6px 14px;color:var(--red);font-size:12px;font-weight:700;cursor:pointer">🗑 Usuń zlecenie</button>
     </div>
   </div>`;
 }
-
 
 function renderOrderCostsList(r){
   const costs=r.costs||[];
@@ -1597,7 +1525,7 @@ function renderOrderCostsList(r){
   return costs.map(c=>`
     <div style="display:flex;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid var(--border);font-size:13px" id="cost-row-${c.id}">
       <select onchange="updCostCat(${r.id},${c.id},this.value)" style="font-size:10px;font-weight:700;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--ink2);width:90px;flex-shrink:0">
-        ${['transport','montaz','postojowe','pracownicy','pracownicy-dod','hotel','inne'].map(cat=>`<option value="${cat}" ${c.cat===cat?'selected':''}>${{'transport':'Transport','montaz':'Montaż/Dem.','postojowe':'Postojowe','pracownicy':'Pracownicy','pracownicy-dod':'Prac. dod.','hotel':'Hotel','inne':'Inne'}[cat]||cat}</option>`).join('')}
+        ${['transport','pracownicy','pracownicy-dod','hotel','paliwo','inne'].map(cat=>`<option value="${cat}" ${c.cat===cat?'selected':''}>${cat==='pracownicy-dod'?'prac.dod.':cat}</option>`).join('')}
       </select>
       <span style="flex:1;font-weight:600;color:#1a1a1a" contenteditable="true" onblur="updCostName(${r.id},${c.id},this.textContent)">${esc(c.name)}</span>
       <input type="number" value="${c.amt}" style="width:88px;text-align:right;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:12px;font-family:var(--mono);font-weight:700;color:#1a1a1a" onchange="updCostAmt(${r.id},${c.id},this.value)">
@@ -1701,7 +1629,7 @@ async function parseBooqable(file){
     if(!r){log.style.color='var(--red)';log.textContent='Nie udało się odczytać danych. Sprawdź czy plik to zamówienie z Booqable.';return;}
     bqParsed=r;
     showBqPreview(r);
-    log.style.color='var(--green)';log.textContent='✓ Dane odczytane pomyślnie.';
+    log.style.color='var(--ink-green)';log.textContent='✓ Dane odczytane pomyślnie.';
   }catch(e){log.style.color='var(--red)';log.textContent='Błąd: '+e.message;}
 }
 
@@ -1718,49 +1646,41 @@ function extractBooqable(text){
     // Strategia: nazwa klienta jest na początku PDF, przed nazwą naszej firmy
     // pdf.js łączy kolumny w jedną linię — odcinamy wszystko od naszych markerów
     const OUR_MARKERS=['Michał Czerwiński','Meble Eventowe','12stopni','Technologiczna','12 Stopni'];
-    var client='';
-    var textLines=text.split(/[\n\r]+/).map(function(l){return l.trim();}).filter(function(l){return l.length>1;});
-
-    // Wytnij naszą firmę z linii kandydata
-    function stripOurs(s){
-      for(var oi=0;oi<OUR_MARKERS.length;oi++){
-        var ix=s.indexOf(OUR_MARKERS[oi]);
-        if(ix>0){s=s.slice(0,ix).trim();break;}
+    let client='';
+    const textLines=text.split(/[\n\r]+/).map(l=>l.trim()).filter(l=>l.length>1);
+    // Próba 1: pierwsza linia — odetnij naszą firmę
+    for(const line of textLines.slice(0,5)){
+      let candidate=line;
+      for(const m of OUR_MARKERS){
+        const idx=candidate.indexOf(m);
+        if(idx>3){candidate=candidate.slice(0,idx).trim();break;}
       }
-      // Wytnij też sufiksy adresowe (plac, ul., kod pocztowy, Poland)
-      s=s.replace(/\s+(ul\.|pl\.|al\.).*$/i,'').replace(/\s+\d{2}-\d{3}.*$/,'').replace(/\s+(Poland|Polska).*$/i,'');
-      // Zostaw tylko do końca sufiksu prawnego (Sp. z o.o., S.A. itp.)
-      var legalM=s.match(/(Sp\.\s*z\s*o\.?\s*o\.?|S\.A\.|Ltd\.?|LLC|s\.r\.o\.?|GmbH)/i);
-      if(legalM) s=s.slice(0,legalM.index+legalM[0].length);
-      return s.replace(/[\s,;]+$/,'').trim();
-    }
-
-    // Próba 1: pierwsza linia bez naszych danych
-    for(var ci=0;ci<Math.min(5,textLines.length);ci++){
-      var cand=stripOurs(textLines[ci]);
-      if(cand.length>3&&!/^\d/.test(cand)&&!/^(ul\.|pl\.|al\.|Poland|Polska|NIP|Michał|Meble)/i.test(cand)){
-        client=cand; break;
+      candidate=candidate.replace(/[\s,;.]+$/,'').trim();
+      // Walidacja: minimum 4 znaki, nie zaczyna się od cyfry/adresu
+      if(candidate.length>3&&!candidate.match(/^\d/)&&!candidate.match(/^(ul\.|pl\.|al\.|Poland|Polska|NIP)/i)){
+        client=candidate;
+        break;
       }
     }
-    // Próba 2: linia z sufiksem prawnym
+    // Próba 2: szukaj linii z "Sp." / "S.A." przed NIP
     if(!client){
-      var nipIdx=textLines.findIndex(function(l){return /^NIP\b/i.test(l);});
-      var searchTo=nipIdx>0?nipIdx:Math.min(8,textLines.length);
-      for(var ci2=0;ci2<searchTo;ci2++){
-        if(/Sp\.|S\.A\.|LLC|GmbH|Ltd|s\.r\.o/i.test(textLines[ci2])){
-          var c2=stripOurs(textLines[ci2]);
-          if(c2.length>3){client=c2;break;}
+      const nipIdx=textLines.findIndex(l=>l.match(/^NIP\b/i)||l.match(/^NIP\s+\d/));
+      const searchTo=nipIdx>0?nipIdx:Math.min(8,textLines.length);
+      for(let i=0;i<searchTo;i++){
+        const l=textLines[i];
+        if(l.match(/Sp\.|S\.A\.|LLC|GmbH|Ltd|s\.r\.o\.?/i)){
+          // Odetnij naszą firmę
+          let c=l;
+          for(const m of OUR_MARKERS){const ix=c.indexOf(m);if(ix>3){c=c.slice(0,ix).trim();break;}}
+          c=c.replace(/[\s,;.]+$/,'').trim();
+          if(c.length>3){client=c;break;}
         }
       }
     }
-    // Próba 3: fallback
+    // Próba 3: fallback — pierwsza sensowna linia
     if(!client){
-      for(var ci3=0;ci3<Math.min(6,textLines.length);ci3++){
-        var l3=textLines[ci3];
-        if(l3.length>5&&/^[A-ZŁŻŹĆĄŚĘÓŃ]/.test(l3)&&!/^(Michał|Meble|Opole|Poland|NIP|Zamówienie|Rozpocz|Dokładny|Osoba)/i.test(l3)){
-          client=stripOurs(l3); if(client.length>3) break; client='';
-        }
-      }
+      const fb=textLines.find(l=>l.length>5&&l.match(/^[A-ZŁŻŹĆĄŚĘÓŃ]/)&&!l.match(/^(Michał|Meble|Opole|Poland|NIP|Zamówienie|Rozpocz|Płat|Dokładny|Osoba)/i));
+      if(fb){let c=fb;for(const m of OUR_MARKERS){const ix=c.indexOf(m);if(ix>3){c=c.slice(0,ix).trim();break;}}client=c.replace(/[\s,;.]+$/,'').trim();}
     }
     // Kwoty — szukamy "Kwota netto X PLN"
     const netM=text.match(/Kwota netto\s+([\d\s,]+)\s*PLN/i);
@@ -1789,87 +1709,24 @@ function extractBooqable(text){
     const dmM=text.match(/Rozpoczęcie demontażu\s+(\d{2}-\d{2}-\d{4})\s*(\d{1,2}:\d{2})?/);
     let demountDate='',demountTime='';
     if(dmM){const p=dmM[1].split('-');demountDate=`${p[2]}-${p[1]}-${p[0]}`;demountTime=dmM[2]||'';}
-    // ── Lokalizacja ──
-    var location='', street='', city='', venue='';
-
-    function afterLabel(src, label) {
-      var idx = src.indexOf(label);
-      if (idx < 0) return '';
-      return src.slice(idx + label.length, idx + label.length + 250);
-    }
-    function cutAtStops(s, stops) {
-      for (var i=0; i<stops.length; i++) {
-        var m = s.search(stops[i]);
-        if (m > 0) s = s.slice(0, m);
+    // Lokalizacja
+    const locIdx=text.indexOf('Dokładny adres dostarczenia');
+    let location='';
+    if(locIdx>=0){
+      const after=text.slice(locIdx+27,locIdx+300).trim();
+      // Stop at known stop phrases from Booqable PDF
+      const stopPhrases=['Osoba odpowiedzialna','Z usług','Uwagi','Numer zamówienia',
+                         'Data wystawienia','Płatność','Zamówienie#','\nNIP'];
+      let raw=after;
+      for(const stop of stopPhrases){
+        const idx=raw.indexOf(stop);
+        if(idx>0&&idx<raw.length) raw=raw.slice(0,idx);
       }
-      return s;
+      // Take only the first non-empty line
+      location=raw.split(/[\n\r]+/).map(l=>l.trim()).filter(l=>l.length>3)[0]||'';
+      location=location.slice(0,100).trim();
     }
-
-    // 1. MIASTO — pierwsze słowo, odcinamy na następnym nagłówku
-    var cityRaw = afterLabel(text, 'Miasto');
-    cityRaw = cutAtStops(cityRaw.trim(), [
-      /Dok[^a]|Dokl/i, /Adres dostarczenia/i, /Obiekt/, /Osoba /, /NIP/, /\d{2}-\d{3}/
-    ]);
-    var cityFirst = cityRaw.trim().split(/[\s\n,]+/)[0] || '';
-    if (cityFirst && !/^(ul\.|pl\.|\d{2}-\d{3}|Poland|Polska|Adres|Osoba|NIP|Data)/i.test(cityFirst)) {
-      city = cityFirst;
-    }
-
-    // 2. ADRES DOSTARCZENIA
-    var adresRaw = afterLabel(text, 'adres dostarczenia') || afterLabel(text, 'Adres dostarczenia');
-    adresRaw = cutAtStops(adresRaw.trim(), [/Obiekt/, /Osoba /, /Michal|Michał/, /Zamówienie #/]);
-    // Usun linie Poland/Polska — zostaw reszte
-    var adresLines = adresRaw.split(/[\n\r]+/);
-    var adresCleanLines = [];
-    for (var ali=0; ali<adresLines.length; ali++) {
-      var al = adresLines[ali].trim();
-      if (/^(Poland|Polska)$/i.test(al)) break;
-      if (al.length > 0) adresCleanLines.push(al);
-    }
-    var adresFirst = adresCleanLines[0] || '';
-    if (adresFirst && adresFirst.indexOf(',') >= 0) {
-      // Format: 'Miasto, Ulica, Kod, Obiekt' — rozdziel po przecinkach
-      var cparts = adresFirst.split(',').map(function(p){return p.trim();});
-      cparts = cparts.filter(function(p){return p.length > 0 && !/^\d{2}-\d{3}$/.test(p);});
-      if (!city && cparts.length > 0) city = cparts[0];
-      var hasVenue = cparts.length > 2 && !/^(ul\.|pl\.|al\.)/i.test(cparts[cparts.length-1]);
-      if (hasVenue) { venue = cparts[cparts.length-1]; street = cparts.slice(1,-1).join(', '); }
-      else { street = cparts.slice(1).join(', '); }
-    } else if (adresFirst.length > 2) {
-      // Format wieloliniowy / space-joined — odetnij kod, Poland, nagłówki
-      var stCuts = [/\d{2}-\d{3}/, /\bPoland\b/i, /\bPolska\b/i, /\bObiekt\b/, /\bOsoba\b/];
-      var stResult = adresFirst;
-      for (var sci=0; sci<stCuts.length; sci++) {
-        var scm = stResult.search(stCuts[sci]);
-        if (scm > 2) stResult = stResult.slice(0, scm).trim();
-      }
-      street = stResult || adresFirst;
-    }
-
-    // 3. OBIEKT — szukaj sekcji (nadpisz jesli znaleziono)
-    var obiektRaw = afterLabel(text, 'Obiekt');
-    obiektRaw = cutAtStops(obiektRaw.trim(), [/Osoba /, /ul\./, /\d{2}-\d{3}/, /Poland/i, /Zamówienie/]);
-    // Pierwsza linia (newline format)
-    var obiektFirst = obiektRaw.split(/[\n\r]/)[0].trim();
-    // Fallback dla space-format: pierwsze słowo po 'Obiekt '
-    if (!obiektFirst || obiektFirst.length === 0) {
-      var objM = text.match(/Obiekt\s+(\S+)/);
-      if (objM) obiektFirst = objM[1].trim();
-    }
-    // Odetnij stop-słowa wewnątrz linii (space-joined format)
-    var objStops = [/\bOsoba\b/i, /\bul\.\b/i, /\d{2}-\d{3}/, /\bPoland\b/i];
-    for (var osi=0; osi<objStops.length; osi++) {
-      var osm = obiektFirst.search(objStops[osi]);
-      if (osm > 0) obiektFirst = obiektFirst.slice(0, osm).trim();
-    }
-    if (obiektFirst && obiektFirst.length > 0
-        && !/^(Osoba|ul\.|Kamil|\d|plac)/i.test(obiektFirst)) {
-      venue = obiektFirst;
-    }
-
-    location = street && city ? street + ', ' + city : (street || city || '');
-
-    return {no,client,date,mountTime,demountDate,demountTime,location,street,city,venue,netFV,rental:rentalSum,transport,montaz,items};
+    return {no,client,date,mountTime,demountDate,demountTime,location,netFV,rental:rentalSum,transport,montaz,items};
   }catch(e){return null;}
 }
 
@@ -1878,27 +1735,16 @@ function showBqPreview(r){
   pr.classList.add('on');
   document.getElementById('bq-save-btn').style.display='';
   document.getElementById('bq-fields').innerHTML=`
-    <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">Nr zamówienia</span><input id="bq-no" value="${esc(r.no)}" placeholder="np. 548" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:13px;color:#1a1a1a;outline:none;flex:1"></div>
+    <div class="bq-row"><span class="bq-lbl">Nr zamówienia</span><span class="bq-val">#${esc(r.no)}</span></div>
     <div class="bq-row" style="align-items:flex-start">
       <span class="bq-lbl" style="padding-top:8px">Klient *</span>
-      <input id="bq-client-name" value="${esc(r.client)}" placeholder="Nazwa klienta" style="flex:1;background:var(--surface);border:1.5px solid ${r.client?'var(--green-border)':'var(--border)'};border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--ink)'" onblur="this.style.borderColor=this.value?'var(--green-border)':'var(--red-border)'">
+      <input id="bq-client-name" value="${esc(r.client)}" placeholder="Wpisz nazwę klienta..." style="flex:1;background:var(--surface);border:1.5px solid ${r.client?'var(--green-border)':'var(--red-border)'};border-radius:var(--r);padding:7px 10px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--ink)'" onblur="this.style.borderColor=this.value?'var(--green-border)':'var(--red-border)'">
     </div>
-    <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">↑ Montaż</span><div style="display:flex;gap:5px;flex:1"><input id="bq-date" type="date" value="${r.date||''}" style="background:var(--surface);border:1.5px solid #bfdbfe;border-radius:var(--r);padding:6px 8px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none;flex:1"><input id="bq-mount-time" type="time" value="${r.mountTime||''}" style="width:88px;background:var(--surface);border:1.5px solid #bfdbfe;border-radius:var(--r);padding:6px 6px;font-size:12px;color:#1a1a1a;outline:none"></div></div>
-    <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">↓ Demontaż</span><div style="display:flex;gap:5px;flex:1"><input id="bq-demount-date" type="date" value="${r.demountDate||''}" style="background:var(--surface);border:1.5px solid #fecaca;border-radius:var(--r);padding:6px 8px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none;flex:1"><input id="bq-demount-time" type="time" value="${r.demountTime||''}" style="width:88px;background:var(--surface);border:1.5px solid #fecaca;border-radius:var(--r);padding:6px 6px;font-size:12px;color:#1a1a1a;outline:none"></div></div>
-    <div class="bq-row" style="align-items:flex-start">
-      <span class="bq-lbl" style="padding-top:7px">Obiekt</span>
-      <input id="bq-venue" value="${esc(r.venue||'')}" placeholder="np. Zamek Moszna" style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:13px;font-weight:600;color:#1a1a1a;outline:none">
-    </div>
-    <div class="bq-row" style="align-items:flex-start">
-      <span class="bq-lbl" style="padding-top:7px">Miasto</span>
-      <input id="bq-city" value="${esc(r.city||'')}" placeholder="np. Moszna" style="flex:1;background:var(--surface);border:1.5px solid var(--blue-border);border-radius:var(--r);padding:6px 10px;font-size:13px;font-weight:700;color:#1d4ed8;outline:none">
-    </div>
-    <div class="bq-row" style="align-items:flex-start">
-      <span class="bq-lbl" style="padding-top:7px">Adres</span>
-      <input id="bq-street" value="${esc(r.street||r.location||'')}" placeholder="np. ul. Zamkowa 1" style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:13px;color:#1a1a1a;outline:none">
-    </div>
-    <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">Kwota netto FV</span><div style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><input id="bq-netfv" type="number" value="${r.netFV}" style="width:110px;text-align:right;background:var(--surface);border:1.5px solid var(--green-border);border-radius:var(--r);padding:6px 10px;font-size:13px;font-weight:700;color:#15803d;outline:none"><span style="font-size:11px;color:var(--ink3)">PLN</span></div></div>
-    <div class="bq-row" style="align-items:flex-start"><span class="bq-lbl" style="padding-top:7px">Wynajem (asortyment)</span><div style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><input id="bq-rental" type="number" value="${r.rental}" style="width:110px;text-align:right;background:var(--surface);border:1.5px solid var(--green-border);border-radius:var(--r);padding:6px 10px;font-size:13px;font-weight:700;color:#15803d;outline:none"><span style="font-size:11px;color:var(--ink3)">PLN</span></div></div>`;
+    <div class="bq-row"><span class="bq-lbl">Data montażu</span><span class="bq-val">${r.date||'—'}${r.mountTime?' '+r.mountTime:''}</span></div>
+    <div class="bq-row"><span class="bq-lbl">Data demontażu</span><span class="bq-val">${r.demountDate||'—'}${r.demountTime?' '+r.demountTime:''}</span></div>
+    ${r.location?`<div class="bq-row"><span class="bq-lbl">Lokalizacja</span><span class="bq-val">${esc(r.location)}</span></div>`:''}
+    <div class="bq-row"><span class="bq-lbl">Kwota netto FV</span><span class="bq-val">${fmt(r.netFV)}</span></div>
+    <div class="bq-row"><span class="bq-lbl">Wynajem asortymentu</span><span class="bq-val c-green">${fmt(r.rental)}</span></div>`;
   document.getElementById('bq-items').innerHTML=r.items.map(i=>
     `<div class="bq-item"><span>${i.qty}x ${esc(i.name)}</span><span>${fmt(i.total)}</span></div>`
   ).join('');
@@ -1910,53 +1756,28 @@ function showBqPreview(r){
 function saveBooqable(){
   if(!bqParsed)return;
   const r=bqParsed;
-  // Read all editable fields from preview inputs
+  // Read potentially edited client name from input
   const clientInput=document.getElementById('bq-client-name');
   if(clientInput&&clientInput.value.trim()) r.client=clientInput.value.trim();
-  const noInput=document.getElementById('bq-no');
-  if(noInput&&noInput.value.trim()) r.no=noInput.value.trim();
-  const dateInput=document.getElementById('bq-date');
-  if(dateInput&&dateInput.value) r.date=dateInput.value;
-  const mountTimeInput=document.getElementById('bq-mount-time');
-  if(mountTimeInput) r.mountTime=mountTimeInput.value;
-  const demountDateInput=document.getElementById('bq-demount-date');
-  if(demountDateInput&&demountDateInput.value) r.demountDate=demountDateInput.value;
-  const demountTimeInput=document.getElementById('bq-demount-time');
-  if(demountTimeInput) r.demountTime=demountTimeInput.value;
-  const netfvInput=document.getElementById('bq-netfv');
-  if(netfvInput&&netfvInput.value) r.netFV=parseFloat(netfvInput.value)||r.netFV;
-  const rentalInput=document.getElementById('bq-rental');
-  if(rentalInput&&rentalInput.value) r.rental=parseFloat(rentalInput.value)||r.rental;
-  const venueInput=document.getElementById('bq-venue');
-  const cityInput=document.getElementById('bq-city');
-  const streetInput=document.getElementById('bq-street');
-  if(venueInput) r.venue=venueInput.value.trim();
-  if(cityInput)  r.city=cityInput.value.trim();
-  if(streetInput) r.street=streetInput.value.trim();
-  if(r.city&&r.street) r.location=r.street+', '+r.city;
-  else r.location=r.street||r.city||r.location||'';
   const workers=parseFloat(document.getElementById('bq-wrk').value)||0;
   const hotel=parseFloat(document.getElementById('bq-hot').value)||0;
-  const postojowe=parseFloat(document.getElementById('bq-postojowe')?.value)||0;
   const month=M2K[r.date?r.date.slice(0,7):'2026-04']||'Kwiecień 26';
   const t=new Date();t.setHours(0,0,0,0);
   const ed=r.date?new Date(r.date):null;if(ed)ed.setHours(0,0,0,0);
   const transport=parseFloat(document.getElementById('bq-tr').value)||0;
   const montaz=parseFloat(document.getElementById('bq-md').value)||0;
   const costs=[];
-  if(transport>0)  costs.push({id:Date.now()+1,cat:'transport',name:'Transport',amt:transport});
-  if(montaz>0)     costs.push({id:Date.now()+2,cat:'montaz',name:'Montaż / Demontaż',amt:montaz});
-  if(postojowe>0)  costs.push({id:Date.now()+3,cat:'postojowe',name:'Opłata postojowa',amt:postojowe});
-  if(workers>0)    costs.push({id:Date.now()+4,cat:'pracownicy',name:'Pracownicy',amt:workers});
-  if(hotel>0)      costs.push({id:Date.now()+5,cat:'hotel',name:'Nocleg',amt:hotel});
+  if(transport>0) costs.push({id:Date.now()+1,cat:'transport',name:'Transport',amt:transport});
+  if(montaz>0)    costs.push({id:Date.now()+2,cat:'montaz',name:'Montaż / Demontaż',amt:montaz});
+  if(workers>0)   costs.push({id:Date.now()+3,cat:'pracownicy',name:'Pracownicy',amt:workers});
+  if(hotel>0)     costs.push({id:Date.now()+4,cat:'hotel',name:'Nocleg',amt:hotel});
   const newRev={id:Date.now(),name:r.client,no:r.no,netFV:r.netFV,rental:r.rental,
-    transport:0,workers:0,hotel:0,costs,otherRevenue:0,
+    transport:transport||0,workers,hotel,costs,otherRevenue:0,
     date:r.date,mountTime:r.mountTime||'',
     demountDate:r.demountDate||'',demountTime:r.demountTime||'',
     location:r.location||'',
-    venue:r.venue||'',
-    city:r.city||'',
-    street:r.street||'',
+    city:r.city||(r.location?r.location.split(',').map(s=>s.trim()).filter(Boolean).pop()||'':''),
+    street:r.street||(r.location?r.location.split(',').slice(0,-1).join(', ').trim():''),
     evSt:ed&&ed<t?'done':'upcoming',fvSt:'unpaid',mk20:false,month};
   S.revenue.push(newRev);
   syncCrmFromOrder(newRev);
@@ -1973,7 +1794,7 @@ function resetBooqable(){
   document.getElementById('bq-preview').classList.remove('on');
   document.getElementById('bq-save-btn').style.display='none';
   document.getElementById('bq-log').textContent='';
-  ['bq-tr','bq-md','bq-wrk','bq-hot','bq-postojowe','bq-no','bq-date','bq-mount-time','bq-demount-date','bq-demount-time','bq-netfv','bq-rental','bq-venue','bq-city','bq-street'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  ['bq-tr','bq-md','bq-wrk','bq-hot'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('fi-bq').value='';
 }
 
@@ -2512,49 +2333,189 @@ function calcTaxForecast(month){
   return {vatNalezny,vatNaliczony,vatDoZaplaty,dochod,pitZaliczka,zusM,nettoFV,cfg};
 }
 
+function renderTaxForecast(){
+  const el=document.getElementById('tax-forecast');
+  if(!el)return;
+  // Forecast for NEXT month based on current month data
+  const now=new Date();
+  const curMo=MONTHS_ORD[now.getMonth()];
+  const nextMo=MONTHS_ORD[(now.getMonth()+1)%12];
+  const fc=calcTaxForecast(curMo); // calculate based on current month
+  const total=fc.vatDoZaplaty+fc.pitZaliczka+fc.zusM;
 
-
+  el.innerHTML=`
+    <div style="background:var(--ink);border-radius:var(--r-lg);padding:1.25rem 1.5rem">
+      <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem">
+        PROGNOZA PODATKÓW — do zapłaty ok. 25. ${nextMo.replace(' 26','')}
+        <span style="margin-left:8px;font-size:9px;opacity:.6">(na podstawie ${curMo.replace(' 26','')})</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:1rem;align-items:end">
+        <div>
+          <div style="font-size:9px;color:rgba(255,255,255,.45);margin-bottom:4px">VAT NALEŻNY<br><span style="opacity:.6">FV netto × ${Math.round(fc.cfg.vatRate*100)}%</span></div>
+          <div style="font-size:15px;font-weight:700;color:#f87171">${fmt(fc.vatNalezny)}</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:2px">− naliczony ${fmt(fc.vatNaliczony)}</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:rgba(255,255,255,.45);margin-bottom:4px">VAT DO ZAPŁATY<br><span style="opacity:.6">termin: 25. ${nextMo.replace(' 26','')}</span></div>
+          <div style="font-size:20px;font-weight:900;color:#f87171">${fmt(fc.vatDoZaplaty)}</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:rgba(255,255,255,.45);margin-bottom:4px">PIT ZALICZKA<br><span style="opacity:.6">dochód ${fmt(fc.dochod)} × ${Math.round(fc.cfg.pitRate*100)}%</span></div>
+          <div style="font-size:20px;font-weight:900;color:#fbbf24">${fmt(fc.pitZaliczka)}</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:rgba(255,255,255,.45);margin-bottom:4px">ZUS<br><span style="opacity:.6">duży ZUS / mies.</span></div>
+          <div style="font-size:20px;font-weight:900;color:#60a5fa">${fmt(fc.zusM)}</div>
+        </div>
+        <div style="border-left:1px solid rgba(255,255,255,.15);padding-left:1rem">
+          <div style="font-size:9px;color:rgba(255,255,255,.45);margin-bottom:4px">ŁĄCZNIE</div>
+          <div style="font-size:24px;font-weight:900;color:#fff">${fmt(total)}</div>
+        </div>
+      </div>
+      <div style="margin-top:.875rem;padding-top:.875rem;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.4)">
+        ⚠ Prognoza szacunkowa. VAT naliczony uwzględnia faktury Taxxo z VAT. PIT liczony metodą liniową od dochodu po odliczeniu kosztów. ZUS: wpisz swoją kwotę w ⚙ Stawki.
+      </div>
+    </div>`;
+}
 
 function renderTaxes(){
-  renderTaxForecast();
-  const entries=S.taxEntries||[];
-  const totalVat=entries.reduce((a,t)=>a+t.vat,0);
-  const totalPit=entries.reduce((a,t)=>a+t.pit,0);
-  const totalZus=entries.reduce((a,t)=>a+t.zus,0);
-  const totalAll=totalVat+totalPit+totalZus;
-  const totalRev=entries.reduce((a,t)=>a+t.revenue,0);
-  document.getElementById('tax-met').innerHTML=`
-    <div class="met m-red"><div class="met-l">VAT łącznie</div><div class="met-v c-red">${fmt(totalVat)}</div><div class="met-sub">${entries.length} miesięcy</div></div>
-    <div class="met m-amber"><div class="met-l">PIT łącznie</div><div class="met-v c-amber">${fmt(totalPit)}</div><div class="met-sub">podatek dochodowy</div></div>
-    <div class="met m-blue"><div class="met-l">ZUS / składki</div><div class="met-v c-blue">${fmt(totalZus)}</div><div class="met-sub">ubezpieczenia</div></div>
-    <div class="met m-gray"><div class="met-l">Łącznie daniny</div><div class="met-v">${fmt(totalAll)}</div><div class="met-sub">${pct(totalAll,totalRev)}% przychodów FV</div></div>`;
+  const now = new Date();
+  const curMonth = now.getMonth();   // 0-based
+  const curYear  = now.getFullYear();
 
-  // Reminder if no entry for last month
-  const now=new Date();
-  const lastMo=MONTHS_ORD[now.getMonth()-1>=0?now.getMonth()-1:11];
-  const hasLastMo=entries.some(t=>t.month===lastMo);
-  document.getElementById('tax-reminder').innerHTML=!hasLastMo?
-    `<div class="notice n-warn" style="margin-bottom:1rem"><span style="font-size:16px;line-height:1">⏰</span><div><strong>Uzupełnij rozliczenie za ${lastMo}</strong> — brak wpisu podatkowego dla poprzedniego miesiąca. Termin VAT: 25 dzień miesiąca.</div></div>`:
-    `<div class="notice n-ok" style="margin-bottom:1rem"><span style="font-size:16px;line-height:1">✓</span><div>Rozliczenie za <strong>${lastMo}</strong> uzupełnione.</div></div>`;
+  // ── Baner z terminem VAT ──
+  // VAT za poprzedni miesiąc płatny do 25. bieżącego miesiąca
+  // Jeśli minął 25., to następny termin to 25. bieżącego+1
+  const deadline25 = new Date(curYear, curMonth, 25);
+  deadline25.setHours(23,59,59,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  let deadlineMonth, deadlineYear, forMonth;
+  if(today <= deadline25){
+    // Do 25. tego miesiąca — za poprzedni miesiąc
+    deadlineMonth = curMonth;    // 0-based
+    deadlineYear  = curYear;
+    forMonth = curMonth === 0 ? 11 : curMonth - 1;
+  } else {
+    // Po 25. — za bieżący miesiąc, termin 25. następnego
+    deadlineMonth = curMonth + 1 > 11 ? 0 : curMonth + 1;
+    deadlineYear  = curMonth + 1 > 11 ? curYear + 1 : curYear;
+    forMonth = curMonth;
+  }
+  const deadline = new Date(deadlineYear, deadlineMonth, 25);
+  deadline.setHours(0,0,0,0);
+  const daysLeft = Math.round((deadline - today) / (1000*60*60*24));
 
-  const sorted=[...entries].sort((a,b)=>MONTHS_ORD.indexOf(b.month)-MONTHS_ORD.indexOf(a.month));
-  const tb=document.getElementById('tax-tbody');
-  if(!sorted.length){tb.innerHTML=`<tr><td colspan="9" class="empty" style="padding:12px">Brak rozliczeń — dodaj pierwsze powyżej</td></tr>`;return;}
-  tb.innerHTML=sorted.map(t=>{
-    const total=t.vat+t.pit+t.zus;
-    const netto=t.revenue-total;
+  const MONTH_NAMES_SHORT = ['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'];
+  const MONTH_NAMES_FULL  = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
+                              'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+  const bannerEl = document.getElementById('vat-deadline-banner');
+  if(bannerEl){
+    const forName = MONTH_NAMES_FULL[forMonth] + ' ' + String(deadlineYear).slice(2);
+    const urgent  = daysLeft <= 3;
+    const warn    = daysLeft <= 7;
+    const color   = urgent ? 'var(--red)' : warn ? 'var(--amber)' : 'var(--blue)';
+    const bg      = urgent ? 'var(--red-bg)' : warn ? 'var(--amber-bg)' : 'var(--blue-bg)';
+    const border  = urgent ? 'var(--red-border)' : warn ? 'var(--amber-border)' : 'var(--blue-border)';
+    const dayLabel = daysLeft === 0 ? 'dziś!' : daysLeft === 1 ? 'jutro' : `za ${daysLeft} dni`;
+    // VAT amount for forMonth
+    const forMonthKey = MONTHS_ORD[forMonth];
+    const fc = calcTaxForecast(forMonthKey);
+
+    bannerEl.innerHTML = `
+      <div style="background:${bg};border:1.5px solid ${border};border-radius:var(--r-lg);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:28px;line-height:1">🧾</span>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">
+              TERMIN JPK_V7M · VAT za ${forName}
+            </div>
+            <div style="font-size:22px;font-weight:900;color:${color};letter-spacing:-.02em">
+              25 ${MONTH_NAMES_SHORT[deadlineMonth]} ${deadlineYear} · ${dayLabel}
+            </div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:9px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">SZACOWANY VAT</div>
+          <div style="font-size:26px;font-weight:900;color:${color}">${fmt(fc.vatDoZaplaty)}</div>
+          <div style="font-size:11px;color:${color};opacity:.7;margin-top:1px">${fmt(fc.vatNalezny)} należny − ${fmt(fc.vatNaliczony)} naliczony</div>
+        </div>
+      </div>`;
+  }
+
+  // ── Tabela VAT per miesiąc ──
+  const wrap = document.getElementById('vat-table-wrap');
+  if(!wrap) return;
+
+  // Build list of all months with revenue or taxxo
+  const revMonths  = [...new Set(S.revenue.map(r=>r.month))].filter(Boolean);
+  const taxxoAll   = S.taxxoEntries||[];
+  const taxxoMonths= [...new Set(taxxoAll.map(t=>{
+    if(!t.date) return null;
+    return MONTHS_ORD[new Date(t.date).getMonth()];
+  }).filter(Boolean))];
+  const allMonths  = [...new Set([...revMonths,...taxxoMonths])]
+    .sort((a,b)=>MONTHS_ORD.indexOf(a)-MONTHS_ORD.indexOf(b));
+
+  if(!allMonths.length){
+    wrap.innerHTML='<div class="empty">Brak zamówień — dodaj zlecenia aby zobaczyć VAT</div>';
+    return;
+  }
+
+  const rows = allMonths.map(month=>{
+    const fc = calcTaxForecast(month);
+    const deadlineNextMonth = (MONTHS_ORD.indexOf(month)+1)%12;
+    const deadlineNextYear  = deadlineNextMonth === 0 ? curYear+1 : curYear;
+    const deadlineDateStr   = `25 ${MONTH_NAMES_SHORT[deadlineNextMonth]}`;
+
+    // Check if deadline has passed
+    const deadlineD = new Date(deadlineNextYear, deadlineNextMonth, 25);
+    const isPast    = deadlineD < today;
+    const dLeft     = Math.round((deadlineD-today)/(1000*60*60*24));
+    const statusColor = isPast?'var(--green)':dLeft<=3?'var(--red)':dLeft<=7?'var(--amber)':'var(--ink3)';
+    const statusLabel = isPast?'✓ termin minął':dLeft===0?'dziś!':dLeft===1?'jutro':`za ${dLeft} dni`;
+
     return `<tr>
-      <td style="font-weight:700">${esc(t.month)}</td>
-      <td class="td-nu">${t.revenue?fmt(t.revenue):'—'}</td>
-      <td class="td-nu c-red">${t.vat?fmt(t.vat):'—'}</td>
-      <td class="td-nu c-amber">${t.pit?fmt(t.pit):'—'}</td>
-      <td class="td-nu c-blue">${t.zus?fmt(t.zus):'—'}</td>
-      <td class="td-nu" style="font-weight:700">${fmt(total)}</td>
-      <td class="td-nu c-green">${t.revenue?fmt(netto):'—'}</td>
-      <td style="font-size:12px;color:var(--ink3);font-style:italic">${esc(t.notes||'')}</td>
-      <td><button onclick="delTax(${t.id})" style="color:var(--ink4);background:none;border:none;cursor:pointer;font-size:12px">✕</button></td>
-    </tr>`;}).join('');
+      <td style="font-weight:700;white-space:nowrap">${month.replace(' 26','')}</td>
+      <td class="td-nu" style="color:#15803d">${fmt(fc.nettoFV)}</td>
+      <td class="td-nu" style="color:var(--red);font-weight:700">${fmt(fc.vatNalezny)}</td>
+      <td class="td-nu" style="color:var(--green)">${fc.vatNaliczony?'−'+fmt(fc.vatNaliczony):'—'}</td>
+      <td class="td-nu" style="font-weight:800;font-size:14px;color:${fc.vatDoZaplaty>0?'var(--red)':'var(--green)'}">
+        ${fc.vatDoZaplaty>0?fmt(fc.vatDoZaplaty):'—'}
+      </td>
+      <td style="font-size:11px;font-family:var(--mono);white-space:nowrap">${deadlineDateStr}</td>
+      <td style="font-size:11px;font-weight:600;color:${statusColor};white-space:nowrap">${statusLabel}</td>
+    </tr>`;
+  });
+
+  const totals = allMonths.reduce((acc,m)=>{
+    const fc=calcTaxForecast(m);
+    return {netto:acc.netto+fc.nettoFV, nalezny:acc.nalezny+fc.vatNalezny,
+            naliczony:acc.naliczony+fc.vatNaliczony, doZaplaty:acc.doZaplaty+fc.vatDoZaplaty};
+  },{netto:0,nalezny:0,naliczony:0,doZaplaty:0});
+
+  wrap.innerHTML=`
+    <table class="tbl">
+      <thead><tr>
+        <th>Miesiąc</th>
+        <th class="tr" style="color:#15803d">Netto FV</th>
+        <th class="tr" style="color:var(--red)">VAT należny<br><span style="font-weight:400;font-size:10px">23% z netto</span></th>
+        <th class="tr" style="color:var(--green)">VAT naliczony<br><span style="font-weight:400;font-size:10px">z faktur Taxxo</span></th>
+        <th class="tr" style="color:var(--red)">Do zapłaty</th>
+        <th>Termin</th>
+        <th>Status</th>
+      </tr></thead>
+      <tbody>${rows.join('')}</tbody>
+      <tfoot><tr style="background:var(--surface2);font-weight:700">
+        <td>RAZEM</td>
+        <td class="td-nu" style="color:#15803d">${fmt(totals.netto)}</td>
+        <td class="td-nu" style="color:var(--red)">${fmt(totals.nalezny)}</td>
+        <td class="td-nu" style="color:var(--green)">${totals.naliczony?'−'+fmt(totals.naliczony):'—'}</td>
+        <td class="td-nu" style="color:var(--red);font-size:15px;font-weight:900">${fmt(totals.doZaplaty)}</td>
+        <td colspan="2"></td>
+      </tr></tfoot>
+    </table>`;
 }
+
 
 function renderTaxChart(){
   const entries=S.taxEntries||[];
@@ -2995,91 +2956,8 @@ function renderCatAnalysis(month, d){
 // ──────────────────────────────────────────────────────
 // PROGNOZA PODATKOWA — VAT, PIT liniowy 19%, ZUS duży
 // ──────────────────────────────────────────────────────
-function renderTaxForecast(month, d){
-  const el=document.getElementById('cfc-tax-forecast');
-  if(!el)return;
-  const cfg=S.taxConfig||TAX_CFG_DEFAULT;
-  const VAT_RATE=cfg.vatRate||0.23;
-  const PIT_RATE=cfg.pitRate||0.19;
-  const ZUS_M=cfg.zusMonthly||1600;
-  const ZUS_HEALTH_RATE=cfg.zusHealthBase||0.049;
 
-  // VAT
-  // Należny: sum of FV (zakładamy VAT 23% od netto FV)
-  const vatNalezny=d.incomeM*VAT_RATE;
-  // Naliczony: VAT z faktur Taxxo + szacunek VAT od kosztów stałych
-  const vatNaliczony=d.taxxoM.reduce((a,t)=>a+(t.vat||t.netto*VAT_RATE),0);
-  const vatDoZaplaty=Math.max(0,vatNalezny-vatNaliczony);
-  const vatDeadlineMonth=MONTHS_ORD[MONTHS_ORD.indexOf(month)+1]||'następny miesiąc';
 
-  // PIT liniowy 19%
-  // Dochód = przychody netto - koszty uzyskania (koszty realizacji + stałe + Taxxo + ZUS społ.)
-  const kosZUS_spoleczne=ZUS_M*0.75; // ~75% składki ZUS to społeczne
-  const dochodPIT=Math.max(0,d.incomeM-d.totalCosts-kosZUS_spoleczne);
-  const zaliczkaPIT=Math.round(dochodPIT*PIT_RATE);
-  // Zaliczkę PIT płaci się do 20. następnego miesiąca (miesięcznie lub kwartalnie)
-
-  // ZUS duży — stała kwota (2026: składki około 1773 zł/mies. + zdrowotna proporcjonalna)
-  const zusSpol=ZUS_M;
-  const zusZdrowotna=Math.max(0,dochodPIT*ZUS_HEALTH_RATE);
-  const zusLacznie=zusSpol+zusZdrowotna;
-
-  // Suma do przygotowania w następnym miesiącu
-  const totalRezerwa=vatDoZaplaty+zaliczkaPIT+zusLacznie;
-  const nextMo=MONTHS_ORD[MONTHS_ORD.indexOf(month)+1]||'następny miesiąc';
-
-  el.innerHTML=`
-    <div class="card" style="padding:1rem 1.25rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
-        <div>
-          <div style="font-size:13px;font-weight:700;color:#1a1a1a">Prognoza podatkowa — do zapłaty w ${esc(nextMo.replace(' 26',''))}</div>
-          <div style="font-size:11px;color:var(--ink3);margin-top:2px">VAT 23% · PIT liniowy 19% · duży ZUS · szacunek na podstawie bieżącego miesiąca</div>
-        </div>
-        <div style="font-size:20px;font-weight:900;color:#dc2626;font-family:var(--mono)">≈ ${fmt(totalRezerwa)}</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1rem">
-        <!-- VAT -->
-        <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:var(--r);padding:12px">
-          <div style="font-size:9px;font-weight:700;color:#dc2626;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">VAT do zapłaty</div>
-          <div style="font-size:18px;font-weight:800;color:#991b1b">${fmt(vatDoZaplaty)}</div>
-          <div style="font-size:10px;color:#dc2626;margin-top:4px;line-height:1.5">
-            Należny: ${fmt(vatNalezny)}<br>
-            Naliczony: ${fmt(vatNaliczony)}<br>
-            Termin: 25. ${esc(nextMo.replace(' 26',''))}
-          </div>
-        </div>
-        <!-- PIT -->
-        <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:var(--r);padding:12px">
-          <div style="font-size:9px;font-weight:700;color:#d97706;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Zaliczka PIT 19%</div>
-          <div style="font-size:18px;font-weight:800;color:#92400e">${fmt(zaliczkaPIT)}</div>
-          <div style="font-size:10px;color:#d97706;margin-top:4px;line-height:1.5">
-            Dochód: ${fmt(dochodPIT)}<br>
-            Stawka: 19% liniowy<br>
-            Termin: 20. ${esc(nextMo.replace(' 26',''))}
-          </div>
-        </div>
-        <!-- ZUS -->
-        <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:var(--r);padding:12px">
-          <div style="font-size:9px;font-weight:700;color:#0284c7;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">ZUS (duży)</div>
-          <div style="font-size:18px;font-weight:800;color:#0369a1">${fmt(zusLacznie)}</div>
-          <div style="font-size:10px;color:#0284c7;margin-top:4px;line-height:1.5">
-            Społeczne: ${fmt(zusSpol)}<br>
-            Zdrowotna: ${fmt(zusZdrowotna)}<br>
-            Termin: 20. ${esc(nextMo.replace(' 26',''))}
-          </div>
-        </div>
-      </div>
-      <!-- Edycja stawek ZUS -->
-      <div style="display:flex;align-items:center;gap:1rem;padding-top:.75rem;border-top:1px solid var(--border);flex-wrap:wrap">
-        <span style="font-size:11px;color:var(--ink3);font-weight:600">Korekta ZUS społ.:</span>
-        <div style="display:flex;align-items:center;gap:4px">
-          <input type="number" value="${ZUS_M}" onchange="S.taxConfig.zusMonthly=parseFloat(this.value)||0;persist();renderTaxForecast('${month}',getCostsData('${month}'))" style="width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:12px;font-family:var(--mono);outline:none">
-          <span style="font-size:11px;color:var(--ink3)">zł/mies.</span>
-        </div>
-        <span style="font-size:10px;color:var(--ink3);font-style:italic">Wartości orientacyjne — skonsultuj z księgowym</span>
-      </div>
-    </div>`;
-}
 
 // ──────────────────────────────────────────────────────
 // MAIN RENDER
@@ -3250,6 +3128,7 @@ function renderTaxxoForMonth(entries){
 function updTaxxoCat(id,cat){
   const t=S.taxxoEntries.find(x=>String(x.id).replace(/'/g,'_')===String(id));if(t){t.userCat=cat;}persist();
 }
+
 function updFixedCost(id,val){
   const c=S.fixedCosts.find(x=>x.id===id);if(c){c.amt=parseFloat(val)||0;}persist();renderCFCosts();
 }
@@ -3708,48 +3587,40 @@ function renderToday(){
 }
 
 
-let ordMonth='all';
-function setOrdMonth(m){ordMonth=m;renderOrders();}
-
 // ─── ORDERS ───
 function renderOrders(){
-  const allRev=S.revenue;
-  const months=[...new Set(allRev.map(r=>r.month))].filter(Boolean)
-    .sort((a,b)=>MONTHS_ORD.indexOf(a)-MONTHS_ORD.indexOf(b));
-
-  // Month tabs inside orders view
-  const tabsEl=document.getElementById('ord-month-tabs');
-  if(tabsEl){
-    const tabs=[{id:'all',label:'Wszystkie',count:allRev.length,fv:allRev.reduce((a,r)=>a+r.netFV,0)}];
-    months.forEach(m=>{
-      const mRev=allRev.filter(r=>r.month===m);
-      tabs.push({id:m,label:m.replace(' 26',''),count:mRev.length,fv:mRev.reduce((a,r)=>a+r.netFV,0)});
-    });
-    tabsEl.innerHTML=tabs.map(t=>`
-      <button onclick="setOrdMonth('${t.id}')" style="
-        display:flex;flex-direction:column;align-items:flex-start;gap:1px;
-        padding:8px 14px;border:1.5px solid ${ordMonth===t.id?'var(--ink)':'var(--border2)'};
-        border-radius:var(--r);cursor:pointer;
-        background:${ordMonth===t.id?'var(--ink)':'var(--surface)'};
-        color:${ordMonth===t.id?'#fff':'var(--ink2)'};
-        transition:all .15s;white-space:nowrap;min-width:80px">
-        <span style="font-size:12px;font-weight:700">${t.label}</span>
-        <span style="font-size:10px;opacity:.65;font-family:var(--mono)">${t.count} · ${fmt(t.fv)}</span>
-      </button>`).join('');
-  }
-
-  const rev=ordMonth==='all'?allRev:allRev.filter(r=>r.month===ordMonth);
+  const rev=filt();
   const tFV=rev.reduce((a,r)=>a+r.netFV,0);
+  const tRen=rev.reduce((a,r)=>a+r.rental,0);
+  const tKR=rev.reduce((a,r)=>a+kReal(r),0);
+  const tW20=rev.reduce((a,r)=>a+w20(r),0);
   const tProfit=rev.reduce((a,r)=>a+profit(r),0);
-  const avgMg=rev.length?Math.round(rev.reduce((a,r)=>a+margin(r),0)/rev.length):0;
+  const avgMg=rev.length?pctF(tProfit,tFV):0;
+  document.getElementById('ord-met').innerHTML=`
+    <div class="met m-green"><div class="met-l">Netto FV łącznie</div><div class="met-v c-green">${fmt(tFV)}</div><div class="met-sub">${rev.length} zamówień</div></div>
+    <div class="met m-green"><div class="met-l">Łączny zysk (po kosztach)</div><div class="met-v c-green">${fmt(tProfit)}</div><div class="met-sub">śr. marża ${avgMg}%</div></div>
+    <div class="met m-amber"><div class="met-l">Koszty realizacji</div><div class="met-v c-amber">${fmt(tKR)}</div><div class="met-sub">${pct(tKR,tFV)}% FV</div></div>
+    <div class="met m-purple"><div class="met-l">Dla Mikołaja (20% wynajmu)</div><div class="met-v c-purple">${fmt(tW20)}</div><div class="met-sub">wynajem: ${fmt(tRen)}</div></div>`;
 
-  // Cashflow alerts
-  buildCashflowAlertCards(document.getElementById('ord-alerts'));
+  // cashflow alerts — upcoming events needing attention
+  const today=new Date();today.setHours(0,0,0,0);
+  const cfAlerts=[];
+  S.revenue.filter(r=>r.evSt==='upcoming'&&r.date).forEach(r=>{
+    const dc=cfClientDeadline(r),dm=cfMkDeadline(r);
+    const dcd=daysUntil(dc),dmd=daysUntil(dm);
+    if(dcd!==null&&dcd>=0&&dcd<=7&&r.fvSt==='unpaid')
+      cfAlerts.push(`<span><strong>${esc(r.name)}</strong> — klient powinien zapłacić do ${fmtDate(dc)} (za ${dcd} dni)</span>`);
+    if(dmd!==null&&dmd>=0&&dmd<=6&&!r.mk20&&r.fvSt==='paid')
+      cfAlerts.push(`<span><strong>${esc(r.name)}</strong> — wyślij Mikołajowi ${fmt(w20(r))} do ${fmtDate(dm)} (za ${dmd} dni)</span>`);
+  });
+  const mkp=rev.filter(r=>r.fvSt==='paid'&&!r.mk20);
+  let alertHtml='';
+  if(mkp.length) alertHtml+=`<div class="notice n-warn" style="margin-bottom:.5rem"><span style="font-size:16px;line-height:1">!</span><div>Wyślij Mikołajowi <strong>${fmt(mkp.reduce((a,r)=>a+w20(r),0))}</strong> — ${mkp.length} opłaconych FV nierozliczonych 20%.</div></div>`;
+  if(cfAlerts.length) alertHtml+=`<div class="notice n-info" style="margin-bottom:.5rem"><span style="font-size:16px;line-height:1">⏰</span><div><strong>Cashflow — pilne terminy:</strong><br>${cfAlerts.join('<br>')}</div></div>`;
+  document.getElementById('ord-alerts').innerHTML=alertHtml;
 
-  const titleEl=document.getElementById('ord-title');
-  const sumEl=document.getElementById('ord-sum');
-  if(titleEl) titleEl.textContent=ordMonth==='all'?`Wszystkie (${rev.length})`:`${ordMonth} — ${rev.length} zamówień`;
-  if(sumEl) sumEl.textContent=`FV: ${fmt(tFV)} · zysk: ${fmt(tProfit)} · śr. marża: ${avgMg}%`;
+  document.getElementById('ord-title').textContent=GM==='all'?`Wszystkie (${rev.length})`:`${GM} — ${rev.length} zamówień`;
+  document.getElementById('ord-sum').textContent=`FV: ${fmt(tFV)} · zysk: ${fmt(tProfit)} · śr. marża: ${avgMg}%`;
 
   const sorted=[...rev].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('ord-tbody').innerHTML=sorted.map(r=>{
@@ -3767,8 +3638,10 @@ function renderOrders(){
             <span style="font-size:9px;font-weight:700;color:#fff;background:#1d4ed8;border-radius:3px;padding:1px 5px;flex-shrink:0">M↑</span>
             <span style="font-size:12px;font-weight:600;color:#1a1a1a;font-family:var(--mono)">${r.date||'—'}</span>
           </div>
-          ${r.demountDate?`<div style="display:flex;align-items:center;gap:5px"><span style="font-size:9px;font-weight:700;color:#fff;background:#dc2626;border-radius:3px;padding:1px 5px;flex-shrink:0">D↓</span><span style="font-size:12px;font-weight:600;color:#1a1a1a;font-family:var(--mono)">${r.demountDate}</span></div>`:''}
-          ${r.city?`<span style="font-size:10px;color:var(--ink3)">📍 ${esc(r.city)}</span>`:''}
+          ${r.demountDate?`<div style="display:flex;align-items:center;gap:5px">
+            <span style="font-size:9px;font-weight:700;color:#fff;background:#e31c1c;border-radius:3px;padding:1px 5px;flex-shrink:0">D↓</span>
+            <span style="font-size:12px;font-weight:600;color:#1a1a1a;font-family:var(--mono)">${r.demountDate}</span>
+          </div>`:'<div style="font-size:10px;color:#a1a1aa;padding-left:2px">brak daty demontażu</div>'}
         </div>
       </td>
       <td class="td-nu" style="color:#15803d;font-weight:700">${fmt(r.netFV)}</td>
@@ -3788,7 +3661,6 @@ function renderOrders(){
       </td>
     </tr>`;}).join('');
 }
-
 
 // ─── COSTS ───
 function renderCostsFull(){
@@ -3944,40 +3816,10 @@ function renderMikołaj(){
   const halaT=months.length*HALA;
   const total=t20+halaT;
   const balance=p20-total;
-  // Hala timer — płatność do 10. dnia każdego miesiąca
-  const now=new Date();
-  const halaDay=10;
-  let daysToHala, halaDeadlineStr;
-  const thisMonth10=new Date(now.getFullYear(),now.getMonth(),halaDay);
-  thisMonth10.setHours(0,0,0,0);
-  const todayH=new Date();todayH.setHours(0,0,0,0);
-  const diffH=Math.round((thisMonth10-todayH)/(1000*60*60*24));
-  if(diffH>=0){
-    daysToHala=diffH;
-    halaDeadlineStr=`10 ${['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'][now.getMonth()]}`;
-  } else {
-    // Next month
-    const next10=new Date(now.getFullYear(),now.getMonth()+1,halaDay);
-    next10.setHours(0,0,0,0);
-    daysToHala=Math.round((next10-todayH)/(1000*60*60*24));
-    halaDeadlineStr=`10 ${['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'][(now.getMonth()+1)%12]}`;
-  }
-  const halaUrgent=daysToHala<=3;
-  const halaWarn=daysToHala<=7;
-  const halaColor=halaUrgent?'var(--red)':halaWarn?'var(--amber)':'var(--blue)';
-  const halaBg=halaUrgent?'var(--red-bg)':halaWarn?'var(--amber-bg)':'var(--blue-bg)';
-  const halaBorder=halaUrgent?'var(--red-border)':halaWarn?'var(--amber-border)':'var(--blue-border)';
-  const halaLabel=daysToHala===0?'dziś!':daysToHala===1?'jutro':daysToHala+' dni';
-
   document.getElementById('mk-met').innerHTML=`
     <div class="met m-purple"><div class="met-l">Należne 20% łącznie</div><div class="met-v c-purple">${fmt(t20)}</div><div class="met-sub">brutto: ${fmt(t20*1.23)}</div></div>
     <div class="met m-green"><div class="met-l">Przekazano Mikołajowi</div><div class="met-v c-green">${fmt(p20)}</div><div class="met-sub">${rev.filter(r=>r.mk20).length} zleceń</div></div>
-    <div class="met m-red"><div class="met-l">Koszt hali (${months.length} mies.)</div><div class="met-v c-red">${fmt(halaT)}</div><div class="met-sub">${fmt(HALA)} × ${months.length} miesięcy</div></div>
-    <div class="met" style="background:${halaBg};border-color:${halaBorder}">
-      <div class="met-l" style="color:${halaColor}">🏭 Płatność hali</div>
-      <div class="met-v" style="color:${halaColor};font-size:22px">${halaLabel}</div>
-      <div class="met-sub" style="color:${halaColor}">termin: ${halaDeadlineStr} · ${fmt(HALA)}</div>
-    </div>`;
+    <div class="met m-red"><div class="met-l">Koszt hali (${months.length} mies.)</div><div class="met-v c-red">${fmt(halaT)}</div><div class="met-sub">${fmt(HALA)} × ${months.length} miesięcy</div></div>`;
   const isOwe=balance<0;
   document.getElementById('mk-summary').innerHTML=`
     <div class="card" style="margin-bottom:1rem;background:${isOwe?'var(--red-bg)':'var(--green-bg)'};border-color:${isOwe?'var(--red-border)':'var(--green-border)'}">
@@ -3989,18 +3831,9 @@ function renderMikołaj(){
         <div><div style="font-size:9px;font-family:var(--mono);color:var(--ink3);margin-bottom:4px">Już przekazano</div><div style="font-size:17px;font-weight:600;color:${isOwe?'var(--red)':'var(--green)'}">${fmt(p20)}</div></div>
       </div>
       <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid ${isOwe?'var(--red-border)':'var(--green-border)'}">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
-          <span style="font-size:13px;font-weight:600;color:${isOwe?'var(--red)':'var(--green)'}">
-            ${isOwe?'Do przekazania: '+fmt(Math.abs(balance)):'Saldo: '+fmt(balance)}
-          </span>
-          <div style="background:${halaBg};border:1.5px solid ${halaBorder};border-radius:var(--r);padding:6px 14px;display:flex;align-items:center;gap:8px">
-            <span style="font-size:18px">🏭</span>
-            <div>
-              <div style="font-size:10px;font-weight:700;color:${halaColor};letter-spacing:.04em">PŁATNOŚĆ HALI — DO ${halaDeadlineStr.toUpperCase()}</div>
-              <div style="font-size:13px;font-weight:800;color:${halaColor}">${fmt(HALA)} · za ${halaLabel}</div>
-            </div>
-          </div>
-        </div>
+        <span style="font-size:13px;font-weight:600;color:${isOwe?'var(--red)':'var(--green)'}">
+          ${isOwe?'Do przekazania: '+fmt(Math.abs(balance)):'Saldo: '+fmt(balance)}
+        </span>
       </div>
     </div>`;
   document.getElementById('mk-tbody').innerHTML=[...rev].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>`
