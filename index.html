@@ -1718,41 +1718,49 @@ function extractBooqable(text){
     // Strategia: nazwa klienta jest na początku PDF, przed nazwą naszej firmy
     // pdf.js łączy kolumny w jedną linię — odcinamy wszystko od naszych markerów
     const OUR_MARKERS=['Michał Czerwiński','Meble Eventowe','12stopni','Technologiczna','12 Stopni'];
-    let client='';
-    const textLines=text.split(/[\n\r]+/).map(l=>l.trim()).filter(l=>l.length>1);
-    // Próba 1: pierwsza linia — odetnij naszą firmę
-    for(const line of textLines.slice(0,5)){
-      let candidate=line;
-      for(const m of OUR_MARKERS){
-        const idx=candidate.indexOf(m);
-        if(idx>3){candidate=candidate.slice(0,idx).trim();break;}
+    var client='';
+    var textLines=text.split(/[\n\r]+/).map(function(l){return l.trim();}).filter(function(l){return l.length>1;});
+
+    // Wytnij naszą firmę z linii kandydata
+    function stripOurs(s){
+      for(var oi=0;oi<OUR_MARKERS.length;oi++){
+        var ix=s.indexOf(OUR_MARKERS[oi]);
+        if(ix>0){s=s.slice(0,ix).trim();break;}
       }
-      candidate=candidate.replace(/[\s,;.]+$/,'').trim();
-      // Walidacja: minimum 4 znaki, nie zaczyna się od cyfry/adresu
-      if(candidate.length>3&&!candidate.match(/^\d/)&&!candidate.match(/^(ul\.|pl\.|al\.|Poland|Polska|NIP)/i)){
-        client=candidate;
-        break;
+      // Wytnij też sufiksy adresowe (plac, ul., kod pocztowy, Poland)
+      s=s.replace(/\s+(ul\.|pl\.|al\.).*$/i,'').replace(/\s+\d{2}-\d{3}.*$/,'').replace(/\s+(Poland|Polska).*$/i,'');
+      // Zostaw tylko do końca sufiksu prawnego (Sp. z o.o., S.A. itp.)
+      var legalM=s.match(/(Sp\.\s*z\s*o\.?\s*o\.?|S\.A\.|Ltd\.?|LLC|s\.r\.o\.?|GmbH)/i);
+      if(legalM) s=s.slice(0,legalM.index+legalM[0].length);
+      return s.replace(/[\s,;]+$/,'').trim();
+    }
+
+    // Próba 1: pierwsza linia bez naszych danych
+    for(var ci=0;ci<Math.min(5,textLines.length);ci++){
+      var cand=stripOurs(textLines[ci]);
+      if(cand.length>3&&!/^\d/.test(cand)&&!/^(ul\.|pl\.|al\.|Poland|Polska|NIP|Michał|Meble)/i.test(cand)){
+        client=cand; break;
       }
     }
-    // Próba 2: szukaj linii z "Sp." / "S.A." przed NIP
+    // Próba 2: linia z sufiksem prawnym
     if(!client){
-      const nipIdx=textLines.findIndex(l=>l.match(/^NIP\b/i)||l.match(/^NIP\s+\d/));
-      const searchTo=nipIdx>0?nipIdx:Math.min(8,textLines.length);
-      for(let i=0;i<searchTo;i++){
-        const l=textLines[i];
-        if(l.match(/Sp\.|S\.A\.|LLC|GmbH|Ltd|s\.r\.o\.?/i)){
-          // Odetnij naszą firmę
-          let c=l;
-          for(const m of OUR_MARKERS){const ix=c.indexOf(m);if(ix>3){c=c.slice(0,ix).trim();break;}}
-          c=c.replace(/[\s,;.]+$/,'').trim();
-          if(c.length>3){client=c;break;}
+      var nipIdx=textLines.findIndex(function(l){return /^NIP\b/i.test(l);});
+      var searchTo=nipIdx>0?nipIdx:Math.min(8,textLines.length);
+      for(var ci2=0;ci2<searchTo;ci2++){
+        if(/Sp\.|S\.A\.|LLC|GmbH|Ltd|s\.r\.o/i.test(textLines[ci2])){
+          var c2=stripOurs(textLines[ci2]);
+          if(c2.length>3){client=c2;break;}
         }
       }
     }
-    // Próba 3: fallback — pierwsza sensowna linia
+    // Próba 3: fallback
     if(!client){
-      const fb=textLines.find(l=>l.length>5&&l.match(/^[A-ZŁŻŹĆĄŚĘÓŃ]/)&&!l.match(/^(Michał|Meble|Opole|Poland|NIP|Zamówienie|Rozpocz|Płat|Dokładny|Osoba)/i));
-      if(fb){let c=fb;for(const m of OUR_MARKERS){const ix=c.indexOf(m);if(ix>3){c=c.slice(0,ix).trim();break;}}client=c.replace(/[\s,;.]+$/,'').trim();}
+      for(var ci3=0;ci3<Math.min(6,textLines.length);ci3++){
+        var l3=textLines[ci3];
+        if(l3.length>5&&/^[A-ZŁŻŹĆĄŚĘÓŃ]/.test(l3)&&!/^(Michał|Meble|Opole|Poland|NIP|Zamówienie|Rozpocz|Dokładny|Osoba)/i.test(l3)){
+          client=stripOurs(l3); if(client.length>3) break; client='';
+        }
+      }
     }
     // Kwoty — szukamy "Kwota netto X PLN"
     const netM=text.match(/Kwota netto\s+([\d\s,]+)\s*PLN/i);
@@ -1802,11 +1810,14 @@ function extractBooqable(text){
       return '';
     }
 
-    // 1. Miasto - szukaj etykiety 'Miasto' (z newline lub bez)
+    // 1. Miasto - tylko pierwsze słowo
     var mIdx = text.indexOf('Miasto');
     if (mIdx >= 0) {
       var mVal = valAfter(text, 'Miasto');
-      if (mVal && !/^(ul\.|pl\.|\d{2}-\d{3}|Adres|Osoba|NIP|Data)/i.test(mVal)) city = mVal;
+      if (mVal && !/^(ul\.|pl\.|\d{2}-\d{3}|Adres|Osoba|NIP|Data)/i.test(mVal)){
+        // Bierzemy tylko pierwsze słowo (samo miasto, bez reszty)
+        city = mVal.split(/[\s,]+/)[0] || '';
+      }
     }
 
     // 2. Adres dostarczenia
