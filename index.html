@@ -1781,40 +1781,41 @@ function extractBooqable(text){
     const dmM=text.match(/Rozpoczęcie demontażu\s+(\d{2}-\d{2}-\d{4})\s*(\d{1,2}:\d{2})?/);
     let demountDate='',demountTime='';
     if(dmM){const p=dmM[1].split('-');demountDate=`${p[2]}-${p[1]}-${p[0]}`;demountTime=dmM[2]||'';}
-    // Lokalizacja
-    // ── Lokalizacja: adres, miasto, obiekt ──
-    // Support both 'Dokładny adres dostarczenia' and 'Adres dostarczenia'
-    const locIdx=text.indexOf('Dokładny adres dostarczenia')>=0?text.indexOf('Dokładny adres dostarczenia'):text.indexOf('Adres dostarczenia');
+    // ── Lokalizacja: parsowanie per pole ──
     let location='', street='', city='', venue='';
-    if(locIdx>=0){
-      const after=text.slice(locIdx+27,locIdx+300).trim();
-      const stopPhrases=['Osoba odpowiedzialna','Z usług','Uwagi','Numer zamówienia',
-                         'Data wystawienia','Płatność','Zamówienie#','\nNIP'];
-      let raw=after;
-      for(const stop of stopPhrases){
-        const idx=raw.indexOf(stop);
-        if(idx>0&&idx<raw.length) raw=raw.slice(0,idx);
-      }
-      location=raw.split(/[\n\r]+/).map(l=>l.trim()).filter(l=>l.length>3)[0]||'';
-      location=location.slice(0,100).trim();
-      street=location;
+
+    // Helper: pobierz wartość po etykiecie (szuka "Etykieta\nWartość" lub "Etykieta Wartość")
+    function getAfterLabel(src, label){
+      // Szukaj label w tekście (case-insensitive)
+      const re=new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[\\s\\n]*([^\\n]+)','i');
+      const m=src.match(re);
+      if(!m)return '';
+      let val=m[1].trim();
+      // Odetnij wszystko po naszych markerach
+      const stops=['Osoba odpowiedzialna','Z usług','Uwagi','Zamówienie','Rozpoczęcie','Michał','Meble'];
+      for(const s of stops){const si=val.indexOf(s);if(si>0)val=val.slice(0,si).trim();}
+      return val.replace(/[\s,]+$/,'').trim();
     }
-    // Miasto — szukamy "Miasto\n<wartość>"
-    const miastoIdx=text.indexOf('Miasto');
-    if(miastoIdx>=0){
-      const miastoAfter=text.slice(miastoIdx+6,miastoIdx+80).trim();
-      const miastoLine=miastoAfter.split(/[\n\r]+/).map(l=>l.trim()).filter(l=>l.length>1)[0]||'';
-      if(miastoLine&&!miastoLine.match(/^(ul\.|pl\.|al\.|Adres|Osoba|NIP|Zamów)/i)){
-        city=miastoLine;
-        if(!location) location=city;
-      }
-    }
-    // Obiekt — szukamy "Obiekt\n<wartość>"
-    const obiektIdx=text.indexOf('\nObiekt\n')>=0?text.indexOf('\nObiekt\n'):text.indexOf('Obiekt\n');
-    if(obiektIdx>=0){
-      const obiektAfter=text.slice(obiektIdx+8,obiektIdx+100).trim();
-      venue=obiektAfter.split(/[\n\r]+/).map(l=>l.trim()).filter(l=>l.length>2)[0]||'';
-    }
+
+    // Miasto
+    city=getAfterLabel(text,'Miasto');
+    // Usuń jeśli to wygląda jak adres, nie miasto
+    if(city.match(/^(ul\.|pl\.|al\.|\d{2}-\d{3}|Poland|Polska)/i)) city='';
+
+    // Obiekt
+    venue=getAfterLabel(text,'Obiekt');
+    if(venue.match(/^(Osoba|Kamila|NIP|ul\.)/i)) venue='';
+
+    // Adres dostarczenia (lub Dokładny adres dostarczenia)
+    const adresLabel=text.includes('Dokładny adres dostarczenia')?'Dokładny adres dostarczenia':'Adres dostarczenia';
+    street=getAfterLabel(text,adresLabel);
+    // Odetnij kod pocztowy i "Poland" z końca
+    street=street.split(/\n/)[0].trim();
+    if(street.match(/^\d{2}-\d{3}/)||street.match(/^(Poland|Polska)$/i)) street='';
+
+    // location = ulica + miasto
+    if(street&&city) location=street+', '+city;
+    else location=street||city||'';
     return {no,client,date,mountTime,demountDate,demountTime,location,street,city,venue,netFV,rental:rentalSum,transport,montaz,items};
   }catch(e){return null;}
 }
