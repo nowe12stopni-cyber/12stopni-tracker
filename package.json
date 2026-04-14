@@ -1,0 +1,12 @@
+{
+  "name": "12stopni-tracker",
+  "version": "1.0.0",
+  "description": "12 Stopni Meble Eventowe — Panel zarządzania",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
